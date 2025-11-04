@@ -14,7 +14,7 @@ if errorlevel 1 (
 
 :: 2. 編譯 VB.NET 函式庫 (Assembly-VBNET.dll)
 :: *** 確保正確引用 EngineAPI.dll (這是解決 BC30002 的關鍵) ***
-.\bin\vbc.exe /target:library /reference:".\lib\EngineAPI.dll" /reference:"System.Runtime.dll" /reference:".\lib\Newtonsoft.Json.dll" /out:".\lib\Assembly-VBNET.dll" /reference:"System.dll" /reference:"System.IO.dll" /reference:"System.Core.dll" .\assets\Scripts\*.vb /nowin32manifest
+.\bin\vbc.exe /target:library /reference:".\lib\EngineAPI.dll" /reference:"System.Runtime.dll" /out:".\lib\Assembly-VBNET.dll" /reference:"System.dll" /reference:"System.IO.dll" /reference:"System.Core.dll" .\assets\Scripts\*.vb /nowin32manifest
 
 :: 3. 編譯最終 EXE
 .\bin\vbc.exe /target:exe src\*.vb /reference:"lib\Assembly-VBNET.dll" /nologo /out:HacknetCMDBasic.exe /nowin32manifest
