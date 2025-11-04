@@ -1,7 +1,9 @@
-git config --global user.name "Null"
-git config --global user.email "eizoulee@gmail.com"
-git commit
-git remote add origin https://github.com/65536Java/Hacknet-For-CMD-VB.NET-Edition.git
- git branch -M main 
+# 1. 强制合并两条独立的历史线
+git pull origin main --allow-unrelated-histories
+
+# 2. (可选) 提交您之前修改但未提交的文件
+git add .
+git commit -m "Final project files update"
+
+# 3. 推送所有内容到 GitHub，并建立跟踪关系
 git push -u origin main
-pause
