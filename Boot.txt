@@ -6,10 +6,9 @@ EFI Runtime Services Dumper v1.0
 Calling RTC_init...
 Initializing APIC.
 Scanning for APICs... Done.
-CPU: Intel(R) Core(TM) i9-14900K, 8 Cores (16 Threads)
-Memory: 16384 MB (16 GB)
+CPU: Intel(R) Core(TM) i9-14900K, 24 Cores (32 Threads)
+Memory: 761 MB
 Platform has 16 logical CPUs.
-
 ACPI: System-specific overrides loaded.
 ACPI: Executing method _PTS for lid.
 ACPI: Executing method _PTS for power.
@@ -18,7 +17,7 @@ ACPI: System-specific overrides loaded.
 Darwin Kernel Version 20.0.0: Thu Oct 26 12:00:00 PDT 2025; root:xnu-200.0.0~1/BUILD-HACKNET-OS-BASIC
 Kext loading now.
 Waiting for DSMOS...
-`
+
 (IOPPF: Found platform 0)
 (IOPPF: Found platform 1)
 IOAPIC: Version 0x20 Vectors 64:119
@@ -48,7 +47,6 @@ Loading HFS+ file: [vram]
 Loading HFS+ file: [system]
 Loading HFS+ file: [kernel_cache]
 Loading HFS+ file: [hacknet_kexts]
-
 nvme0: Identified as "HacknetNVMe-System"
 AppleNVMe: Found 1 NVMe device
 AppleNVMe: PCI ID: 0x8086:0x2701, Revision: 0x0001, Subsystem ID: 0x106B:0x00A1
@@ -56,11 +54,9 @@ AppleNVMe: Slot 0: Model INTEL SSDPEKNW010T8, FW R001.0001
 AppleNVMe: Disk 'hacknet_disk0' (0x2)
 IOStorageFamily: **Hacknet OS Basic Version** Boot volume: 'Hacknet_System_Drive' mounted on '/'.
 IOStorageFamily: disk0s2 mounted on /
-
 0:0: Setting up HIBernation
 0:0: Power management initialized
 0:0: Starting Launchd...
-
 launchd[1]: *** Launchd Started ***
 launchd[1]: Booting Hacknet OS Basic Version 1.0.2 in single user mode.
 launchd[1]: com.apple.WindowServer: Unknown key for boolean: StartInterval

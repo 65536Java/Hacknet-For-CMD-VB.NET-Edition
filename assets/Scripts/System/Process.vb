@@ -7,10 +7,12 @@ Namespace Entropy.System
         Public Shared CurrentComputer As HNServer = Server.root
         Public isActived As Boolean
         Public PID As Integer
+        Public Name As String
         Public Sub Start()
             isActived = True
             Dim proc As Thread = New Thread(AddressOf ProcessMain)
             proc.Start()
+            Game.Processes.Add(Me)
             While isActived
                 Thread.Sleep(50)
             End While
@@ -18,6 +20,7 @@ Namespace Entropy.System
         End Sub
         Public Sub Kill()
             isActived = False
+            Game.Processes.Remove(Me)
         End Sub
         Public MustOverride Sub ProcessMain()
         Public Shared Sub StartProcess(process As Process, maxRAM As Integer, ByRef usedRAM As Integer)

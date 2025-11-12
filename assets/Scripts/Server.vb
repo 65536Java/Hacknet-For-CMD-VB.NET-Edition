@@ -1,4 +1,3 @@
-' ...existing code...
 Imports System
 Imports System.IO
 Imports System.Collections.Generic
@@ -6,18 +5,8 @@ Imports System.Text.RegularExpressions
 
 Public Module Server
     Public ReadOnly root As HNServer = New HNServer()
+
     Public Class HNServer
-        Public Sub New(ip As String, name As String, ports As Integer(), needCrackPortsCount As Integer, hasProxy As Boolean, hasFirewall As Boolean, hasTrace As Boolean, traceSpeed As Single, connectedServers As String(), userName As String, password As String, canLogin As Boolean)
-            IP = ip
-            Name = name
-            OpenPorts = ports
-            NeedCrackPortsCount = needCrackPortsCount
-            HasProxy = hasProxy
-            HasFirewall = hasFirewall
-            HasTrace = hasTrace
-            TraceSpeed = traceSpeed
-            ConnectedServers = connectedServers
-        End Sub
         Public Sub New()
             IP = "root"
             Name = "Not Connected"
@@ -28,8 +17,13 @@ Public Module Server
             HasTrace = False
             TraceSpeed = 1.0F
             ConnectedServers = New String() {}
+            Contents = Nothing
+            ContentsRaw = ""
+            UserName = ""
+            Password = ""
+            CanLogin = False
         End Sub
-        Public Property Contents() As String()
+
         Public Property IP As String
         Public Property Name As String
         Public Property OpenPorts() As Integer()
@@ -43,7 +37,13 @@ Public Module Server
         Public Property UserName As String
         Public Property Password As String
         Public Property CanLogin As Boolean
-        Public Sub ScanServer(server As HNServer)
+
+        ' 真正的檔案系統物件（若暫時不解析，可為 Nothing）
+        Public Property Contents As Entropy.System.FileSys
+        ' 儲存原始 contents JSON 字串，之後再解析成 FileSys
+        Public Property ContentsRaw As String
+
+        Public Sub ScanServer()
             Console.WriteLine("Scanning: " & Name & " (" & IP & ")")
             If ConnectedServers Is Nothing OrElse ConnectedServers.Length = 0 Then
                 Console.WriteLine("  No connected servers.")
@@ -54,6 +54,7 @@ Public Module Server
                 Next
             End If
         End Sub
+
         Public Function Login(userName As String, password As String) As Boolean
             If CanLogin AndAlso UserName = userName AndAlso Password = password Then
                 Return True
@@ -62,9 +63,8 @@ Public Module Server
             End If
         End Function
     End Class
-    ' ...existing HNServer 類別 保留或放在這裡...
     Public Class ServerInfoParse
-        ' 以手寫解析（不使用 DataContract / JsonSerializer）
+        ' 以手寫解析（不使用 JsonLib），改用 brace-depth 抽取頂層 object
         Public Function LoadServers(path As String) As List(Of HNServer)
             Dim result As New List(Of HNServer)()
             If String.IsNullOrEmpty(path) OrElse Not File.Exists(path) Then
@@ -72,10 +72,35 @@ Public Module Server
             End If
 
             Dim txt As String = File.ReadAllText(path)
-            ' 找出每個物件區塊（簡單方式，適用於你的 JSON 結構）
-            Dim objPattern As String = "\{(.*?)\}"
-            For Each m As Match In Regex.Matches(txt, objPattern, RegexOptions.Singleline)
-                Dim body As String = m.Groups(1).Value
+
+            ' 先以 brace-depth 擷取每一個頂層 object（容錯巢狀物件）
+            Dim objects As New List(Of String)()
+            Dim sb As New System.Text.StringBuilder()
+            Dim depth As Integer = 0
+            For i As Integer = 0 To txt.Length - 1
+                Dim ch As Char = txt(i)
+                If ch = "{"c Then
+                    depth += 1
+                End If
+                If depth > 0 Then
+                    sb.Append(ch)
+                End If
+                If ch = "}"c Then
+                    depth -= 1
+                    If depth = 0 Then
+                        objects.Add(sb.ToString())
+                        sb.Clear()
+                    End If
+                End If
+            Next
+
+            For Each obj As String In objects
+                Dim body As String = obj
+                ' 移除外層大括號，讓後續 Regex 針對 body 內部解析更直覺
+                If body.StartsWith("{"c) AndAlso body.EndsWith("}"c) Then
+                    body = body.Substring(1, body.Length - 2)
+                End If
+
                 Dim s As New HNServer()
 
                 Dim mName = Regex.Match(body, """name""\s*:\s*""([^""]*)""", RegexOptions.IgnoreCase)
@@ -92,14 +117,11 @@ Public Module Server
 
                 Dim mNeed = Regex.Match(body, """need_crack_ports""\s*:\s*(\d+)", RegexOptions.IgnoreCase)
                 If mNeed.Success Then
-                    Integer.TryParse(mNeed.Groups(1).Value, s.NeedCrackPortsCount)
+                    Dim tmp As Integer = 0
+                    Integer.TryParse(mNeed.Groups(1).Value, tmp)
+                    s.NeedCrackPortsCount = tmp
                 End If
 
-                ' 解析 contents 字串
-                Dim mContents = Regex.Match(body, """contents""\s*:\s*""([^""]*)""", RegexOptions.IgnoreCase)
-                If mContents.Success Then 
-                    s.Contents = mContents.Groups(1).Value
-                End If
                 ' 解析 ports 陣列（如果有）
                 Dim mPorts = Regex.Match(body, """ports""\s*:\s*\[([^\]]*)\]", RegexOptions.IgnoreCase)
                 If mPorts.Success Then
@@ -111,10 +133,11 @@ Public Module Server
                     Next
                     If nums.Count > 0 Then s.OpenPorts = nums.ToArray()
                 End If
-                ' 解析 userName 字串
+
+                ' 解析 userName / password / canLogin
                 Dim mUserName = Regex.Match(body, """userName""\s*:\s*""([^""]*)""", RegexOptions.IgnoreCase)
                 If mUserName.Success Then s.UserName = mUserName.Groups(1).Value
-                
+
                 Dim mPassword = Regex.Match(body, """password""\s*:\s*""([^""]*)""", RegexOptions.IgnoreCase)
                 If mPassword.Success Then s.Password = mPassword.Groups(1).Value
 
@@ -134,6 +157,100 @@ Public Module Server
                     s.ConnectedServers = New String() {}
                 End If
 
+                ' 解析 contents：使用 regex 找 key，再檢查冒號後第一個非空白字元以決定解析方式
+                Dim mContentsKey As Match = Regex.Match(body, """contents""\s*:\s*", RegexOptions.IgnoreCase)
+                If mContentsKey.Success Then
+                    Dim pos As Integer = mContentsKey.Index + mContentsKey.Length
+                    ' 跳過空白
+                    While pos < body.Length AndAlso Char.IsWhiteSpace(body(pos))
+                        pos += 1
+                    End While
+
+                    If pos < body.Length Then
+                        Dim ch As Char = body(pos)
+                        If ch = "{"c Then
+                            ' brace-depth 解析物件（避免與外層變數名稱衝突）
+                            Dim depth2 As Integer = 0
+                            Dim endIdx As Integer = -1
+                            For j As Integer = pos To body.Length - 1
+                                Dim c As Char = body(j)
+                                If c = "{"c Then depth2 += 1
+                                If c = "}"c Then
+                                    depth2 -= 1
+                                    If depth2 = 0 Then
+                                        endIdx = j
+                                        Exit For
+                                    End If
+                                End If
+                            Next
+                            If endIdx >= 0 Then
+                                s.ContentsRaw = body.Substring(pos, endIdx - pos + 1)
+                            Else
+                                s.ContentsRaw = body.Substring(pos) ' 容錯：到結尾
+                            End If
+                        ElseIf ch = """"c Then
+                            ' 字串形式，處理 escape quotes
+                            Dim k As Integer = pos + 1
+                            Dim found As Integer = -1
+                            While k < body.Length
+                                If body(k) = """"c Then
+                                    Dim backslashCount As Integer = 0
+                                    Dim t As Integer = k - 1
+                                    While t >= 0 AndAlso body(t) = "\"c
+                                        backslashCount += 1
+                                        t -= 1
+                                    End While
+                                    If backslashCount Mod 2 = 0 Then
+                                        found = k
+                                        Exit While
+                                    End If
+                                End If
+                                k += 1
+                            End While
+                            If found >= 0 Then
+                                s.ContentsRaw = body.Substring(pos, found - pos + 1)
+                            Else
+                                s.ContentsRaw = body.Substring(pos) ' 容錯
+                            End If
+                        Else
+                            ' 其他情況（例如 null 或非標準格式），儲存到下一個逗號或結尾
+                            Dim endPos As Integer = body.IndexOf(","c, pos)
+                            If endPos = -1 Then endPos = body.Length
+                            s.ContentsRaw = body.Substring(pos, endPos - pos).Trim()
+                        End If
+                    Else
+                        s.ContentsRaw = ""
+                    End If
+                Else
+                    s.ContentsRaw = ""
+                End If
+
+
+                ' 初始化 Contents 為空的 FileSys，避免後續 NullReference
+                s.Contents = New Entropy.System.FileSys()
+
+                ' 若 ContentsRaw 看起來像物件且包含 files 陣列，嘗試簡單解析並加入 FileSys
+                If Not String.IsNullOrWhiteSpace(s.ContentsRaw) AndAlso s.ContentsRaw.Contains("""files""") Then
+                    Dim filesSection As Match = Regex.Match(s.ContentsRaw, """files""\s*:\s*\[([^\]]*)\]", RegexOptions.Singleline)
+            
+                    If filesSection.Success Then
+                        Dim filesInner As String = filesSection.Groups(1).Value
+                    
+                        For Each fm As Match In Regex.Matches(filesInner, "\{(.*?)\}", RegexOptions.Singleline)
+                            Dim fileBody As String = fm.Groups(1).Value
+                            Dim mFileName As Match = Regex.Match(fileBody, """name""\s*:\s*""([^""]*)""", RegexOptions.Singleline)
+                            Dim mFileContent As Match = Regex.Match(fileBody, """content""\s*:\s*""([^""]*)""", RegexOptions.Singleline)
+                            Dim f As New Entropy.System.File()
+                            If mFileName.Success Then f.Name = mFileName.Groups(1).Value
+                            If mFileContent.Success Then f.Content = mFileContent.Groups(1).Value
+                            s.Contents.Files.Add(f)
+                        Next
+                    End If
+                End If
+
+                ' Debug: 印出載入結果，方便確認
+                ' Console.WriteLine("Loaded server: " & s.Name & " (" & s.IP & "), files: " & s.Contents.Files.Count)
+
                 result.Add(s)
             Next
 
@@ -141,4 +258,3 @@ Public Module Server
         End Function
     End Class
 End Module
-' ...existing code...

@@ -8,13 +8,17 @@ Imports Server
 Imports Engine
 Imports Engine.Security
 Imports System.Collections.Generic
+Imports Terminals
 Public Module Game
     ' 將 Directory/player 提升到模組層級
     Dim BaseDir As String
     Private player As SoundPlayer
     Private playerName As String
+    Public CurrentPath As String = ""
     Dim RAM As Integer = 761
     Dim UsedRAM As Integer = 0
+    Public Processes As New List(Of Entropy.System.Process)
+    Public CurrentComputer As HNServer
     Sub CreateDirectory(path As String)
         ' 確保基本資料夾存在
         If Not Directory.Exists(System.IO.Path.Combine(BaseDir, path)) Then
@@ -318,6 +322,12 @@ Public Module Game
             Thread.Sleep(1000)
             Dim tutorialProcess As Entropy.System.Process = New Tutorial()
             Entropy.System.Process.StartProcess(tutorialProcess, RAM, UsedRAM)
+            player.Stop()
+            player = AudioUtil.GetSoundPlayer(BaseDir, "assets\audios\out_run_the_wolves.wav")
+            player.PlayLooping()
+            While True
+                Terminal.terminal(ServersAvailable.ToArray(), CurrentComputer)
+            End While
         End If
     End Sub
     Function RandomNumber(min As Integer, max As Integer) As Integer

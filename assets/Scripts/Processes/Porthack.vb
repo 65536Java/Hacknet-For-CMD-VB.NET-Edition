@@ -6,6 +6,7 @@ Public Class Porthack
     Inherits Process
     Dim Computer As HNServer
     Public Sub New(server As HNServer)
+        Name = "Porthack"
         Computer = server
         needRam = 246
     End Sub

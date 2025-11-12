@@ -11,6 +11,8 @@ Public Class Tutorial
     Inherits Process
     Dim ServersAvailable As HNServer()
     Public Sub New()
+        PID = 12
+        Name = "Tutorial"
         needRam = 500
     End Sub
     Public Overrides Sub ProcessMain()
@@ -21,6 +23,7 @@ Public Class Tutorial
         Else
             ServersAvailable = list.ToArray()
         End If
+        ' 把伺服器加入 Game 並在此輸出 debug（確保 ServersAvailable 已初始化）
         For Each server As HNServer In ServersAvailable
             Game.ServersAvailable.Add(server)
         Next
@@ -34,10 +37,10 @@ Public Class Tutorial
         Console.WriteLine("Tutorial:")
         Console.WriteLine("Connect to a computer by typing connect [IP] in the terminal.")
         Console.WriteLine("Now, connect to your computer.")
-        Console.WriteLine("Your Computer's IP address is 116.452.4.6")
+        Console.WriteLine("Your Computer's IP address is 116.121.4.6")
         Do
             temp = Terminal.terminal(ServersAvailable, CurrentComputer)
-        Loop While temp <> "connect" AndAlso CurrentComputer.IP <> "116.452.4.6"
+        Loop While temp <> "connect" AndAlso CurrentComputer.IP <> "116.121.4.6"
         Console.WriteLine("Tutorial:")
         Console.WriteLine("Good work.")
         Console.WriteLine("The first thing to do on any system is scan it for adjacent nodes.")
@@ -51,7 +54,7 @@ Public Class Tutorial
         Console.WriteLine("Disconnect from your machine by typing dc or disconnect.")
         Do
             temp = Terminal.terminal(ServersAvailable, CurrentComputer)
-        Loop While CurrentComputer IsNot Server.root
+        Loop While temp <> "dc" AndAlso temp <> "disconnect"
         Console.WriteLine("Tutorial:")
         Console.WriteLine("It's time for you to connect to an outside computer.")
         Console.WriteLine("Be aware that attempting to compromise the security of another's computer is illegal under the U.S.C. Act 1030-18.")
@@ -82,6 +85,60 @@ Public Class Tutorial
         Do
             temp = Terminal.terminal(ServersAvailable, CurrentComputer)
         Loop While temp <> "scan"
+        Console.WriteLine("Tutorial:")
+        Console.WriteLine("No results - not a problem.")
+        Console.WriteLine("Next, you should investigate the filesystem.")
+        Console.WriteLine("List the files using the ls command.")
+        Do
+            temp = Terminal.terminal(ServersAvailable, CurrentComputer)
+        Loop While temp <> "ls"
+        Console.WriteLine("Tutorial:")
+        Console.WriteLine("Navigate to bin folder(Binaries Folder) to search for useful executable using the command.")
+        Console.WriteLine("cd [FOLDER NAME]")
+        Do
+            temp = Terminal.terminal(ServersAvailable, CurrentComputer)
+        Loop While temp <> "cd" OrElse Game.CurrentPath <> "bin"
+        Console.WriteLine("Tutorial:")
+        Console.WriteLine("To view contents of the current folder you're in use the command ls.")
+        Console.WriteLine("These are no programs here, but you should look at config.txt")
+        Console.WriteLine("Use the read [file] to view the contents of a file.")
+        Do
+            temp = Terminal.terminal(ServersAvailable, CurrentComputer)
+        Loop While temp <> "read"
+        Console.WriteLine("Tutorial:")
+        Console.WriteLine("Totally useless!")
+        Console.WriteLine("Now clear your tracks before you leave.")
+        Console.WriteLine("Use the command cd .. to go back to the previous directory.")
+        Do
+            temp = Terminal.terminal(ServersAvailable, CurrentComputer)
+        Loop While temp <> "cd" OrElse Game.CurrentPath <> ""
+        Console.WriteLine("Tutorial:")
+        Console.WriteLine("Move to the log folder.")
+        Console.WriteLine("cd [FOLDER NAME]")
+        Do
+            temp = Terminal.terminal(ServersAvailable, CurrentComputer)
+        Loop While temp <> "cd" OrElse Game.CurrentPath <> "log"
+        Console.WriteLine("Tutorial:")
+        Console.WriteLine("Delete all files in this directory.")
+        Console.WriteLine("Use the command rm [file] to delete a file.")
+        Console.WriteLine("Note:The wildcard * indicates All.")
+        Do
+            temp = Terminal.terminal(ServersAvailable, CurrentComputer)
+        Loop While temp <> "rm" OrElse Game.CurrentPath <> "log"
+        Console.WriteLine("Tutorial:")
+        Console.WriteLine("Excellent work.")
+        Console.WriteLine("Disconnect from this computer.")
+        Console.WriteLine("You can use the dc or disconnect command.")
+        Do
+            temp = Terminal.terminal(ServersAvailable, CurrentComputer)
+        Loop While temp <> "dc" AndAlso temp <> "disconnect"
+        Console.WriteLine("Tutorial:")
+        Console.WriteLine("Congratulations, you have completed the guided section of this tutorial.")
+        Console.WriteLine("To finish it, you must locate the Process id of this tutorial process.")
+        Console.WriteLine("Use kill [Process ID] to kill a process And Use ps to list processes.")
+        Do
+            temp = Terminal.terminal(ServersAvailable, CurrentComputer)
+        Loop While temp <> "dc" AndAlso temp <> "disconnect"
         Kill()
     End Sub
 End Class
