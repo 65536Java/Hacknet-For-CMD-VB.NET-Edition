@@ -321,7 +321,7 @@ Public Module Game
             Console.WriteLine("Launching Tutorial...")
             Thread.Sleep(1000)
             Dim tutorialProcess As Entropy.System.Process = New Tutorial()
-            Entropy.System.Process.StartProcess(tutorialProcess, RAM, UsedRAM)
+            Entropy.System.Process.StartProcess(tutorialProcess, RAM, UsedRAM, True)
             player.Stop()
             player = AudioUtil.GetSoundPlayer(BaseDir, "assets\audios\out_run_the_wolves.wav")
             player.PlayLooping()

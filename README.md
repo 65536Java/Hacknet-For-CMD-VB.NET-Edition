@@ -8,5 +8,5 @@ Other Developers:<br/>
 [Skiawm91](https://github.com/Skiawm91)<br/>
 [Hoyiqiang](https://github.com/Hoyiqiang)<br/>
 [Null(Me)](https://github.com/65536Java)<br/>
-# Now version: Beta 0071
+# Now version: Beta 0082
 # Developing Progress: Tutorial Complete

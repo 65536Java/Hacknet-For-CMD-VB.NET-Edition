@@ -138,8 +138,7 @@ Public Class Tutorial
         Console.WriteLine("Use kill [Process ID] to kill a process And Use ps to list processes.")
         Do
             temp = Terminal.terminal(ServersAvailable, CurrentComputer)
-        Loop While temp <> "dc" AndAlso temp <> "disconnect"
-        Kill()
+        Loop While temp <> "kill"
     End Sub
 End Class
 ' ...existing code...

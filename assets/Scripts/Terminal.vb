@@ -4,205 +4,153 @@ Imports System.Threading
 Namespace Terminals
     Public Class Terminal
         Public Shared Function terminal(ServersAvailable As HNServer(), ByRef CurrentComputer As HNServer) As String
-            Dim cmd As String = "None"
-            Dim Args() As String = {}
-            Dim temp As String
-            Console.Write(CurrentComputer.IP & "@" & Game.CurrentPath & "> ")
-            temp = Console.ReadLine()
-            If String.IsNullOrWhiteSpace(temp) Then Return "None"
+            Try
+                If ServersAvailable Is Nothing Then ServersAvailable = New HNServer() {}
+                If CurrentComputer Is Nothing Then CurrentComputer = Server.root
 
-            Dim parts() As String = temp.Split(" "c)
-            cmd = parts(0).ToLowerInvariant()
+                ' Game 為 Module，不能檢查 Game Is Nothing；只確保 CurrentPath 有值
+                If String.IsNullOrEmpty(Game.CurrentPath) Then Game.CurrentPath = ""
 
-            If parts.Length > 1 Then
-                ReDim Args(parts.Length - 2)
-                For i As Integer = 1 To parts.Length - 1
-                    Args(i - 1) = parts(i)
-                Next
-            End If
+                Dim cmd As String = "None"
+                Dim Args() As String = {}
+                Dim temp As String = ""
 
-            If cmd = "connect" Then
-                ' connect [IP]
-                If Args.Length = 0 Then
-                    Console.WriteLine("Usage: connect [IP]")
-                    Return cmd
-                End If
-                Dim ip As String = Args(0)
-                For Each s As HNServer In ServersAvailable
-                    If s.IP = ip OrElse String.Equals(s.Name, ip, StringComparison.OrdinalIgnoreCase) Then
-                        CurrentComputer = s
-                        Console.WriteLine("Connected to " & s.Name)
-                        Return cmd
-                    End If
-                Next
-                Console.WriteLine("Could not connect to " & ip)
-                Return cmd
+                Dim ipForPrompt As String = If(CurrentComputer IsNot Nothing AndAlso Not String.IsNullOrEmpty(CurrentComputer.IP), CurrentComputer.IP, "root")
+                Dim pathForPrompt As String = If(String.IsNullOrEmpty(Game.CurrentPath), "", Game.CurrentPath)
+                Console.Write(ipForPrompt & "@" & pathForPrompt & "> ")
 
-            ElseIf cmd = "scan" Then
-                CurrentComputer.ScanServer()
-                Return cmd
+                temp = Console.ReadLine()
+                If String.IsNullOrWhiteSpace(temp) Then Return "None"
 
-            ElseIf cmd = "ls" OrElse cmd = "dir" Then
-                ' 防護：若 Contents 為 Nothing，建立空的 FileSys
-                If CurrentComputer.Contents Is Nothing Then
-                    CurrentComputer.Contents = New Entropy.System.FileSys()
-                End If
+                Dim parts() As String = temp.Split(" "c)
+                cmd = parts(0).ToLowerInvariant()
 
-                If String.IsNullOrEmpty(Game.CurrentPath) Then
-                    For Each d As Entropy.System.Dir In CurrentComputer.Contents.Dirs
-                        Console.WriteLine(d.Name & "/")
-                    Next
-                    For Each f As Entropy.System.File In CurrentComputer.Contents.Files
-                        Console.WriteLine(f.Name)
+                If parts.Length > 1 Then
+                    ReDim Args(parts.Length - 2)
+                    For i As Integer = 1 To parts.Length - 1
+                        Args(i - 1) = parts(i)
                     Next
                 Else
-                    ' 簡單實作：只列當前目錄 Files（若需更完整路徑解析再實作）
-                    Dim foundDir As Entropy.System.Dir = Nothing
-                    For Each d As Entropy.System.Dir In CurrentComputer.Contents.Dirs
-                        If d.Name = Game.CurrentPath Then
-                            foundDir = d : Exit For
+                    Args = New String() {}
+                End If
+
+                If cmd = "connect" Then
+                    If Args.Length = 0 Then
+                        Console.WriteLine("Usage: connect [IP]")
+                        Return cmd
+                    End If
+                    Dim ip As String = Args(0)
+                    For Each s As HNServer In ServersAvailable
+                        If s IsNot Nothing AndAlso (s.IP = ip OrElse String.Equals(s.Name, ip, StringComparison.OrdinalIgnoreCase)) Then
+                            CurrentComputer = s
+                            Console.WriteLine("Connected to " & s.Name)
+                            Return cmd
                         End If
                     Next
-                    If foundDir IsNot Nothing Then
-                        For Each d As Entropy.System.Dir In foundDir.Dirs
+                    Console.WriteLine("Could not connect to " & ip)
+                    Return cmd
+
+                ElseIf cmd = "scan" Then
+                    If CurrentComputer IsNot Nothing Then CurrentComputer.ScanServer()
+                    Return cmd
+
+                ElseIf cmd = "ls" OrElse cmd = "dir" Then
+                    If CurrentComputer Is Nothing Then
+                        Console.WriteLine("No computer connected.")
+                        Return cmd
+                    End If
+
+                    If CurrentComputer.Contents Is Nothing Then CurrentComputer.Contents = New Entropy.System.FileSys()
+
+                    If String.IsNullOrEmpty(Game.CurrentPath) Then
+                        For Each d As Entropy.System.Dir In CurrentComputer.Contents.Dirs
                             Console.WriteLine(d.Name & "/")
                         Next
-                        For Each f As Entropy.System.File In foundDir.Files
+                        For Each f As Entropy.System.File In CurrentComputer.Contents.Files
                             Console.WriteLine(f.Name)
                         Next
                     Else
-                        Console.WriteLine("No such directory: " & Game.CurrentPath)
-                    End If
-                End If
-                Return cmd
-
-            ElseIf cmd = "dc" OrElse cmd = "disconnect" Then
-                Console.WriteLine("Disconnected.")
-                CurrentComputer = Server.root
-                Return cmd
-            ElseIf cmd = "cd" Then
-                If Args(0) = ".." Then
-                    Game.CurrentPath = ""
-                Else
-                    Game.CurrentPath = Args(0)
-                End If
-                Return cmd
-            ElseIf cmd = "probe" OrElse cmd = "nmap" Then
-                Dim portType As String
-                Console.WriteLine("Open ports: ")
-                For Each port As Integer In CurrentComputer.OpenPorts
-                    If port = 80 Then
-                        portType = "HTTP WebServer"
-                    ElseIf port = 25 Then
-                        portType = "SMTP Mail Server"
-                    ElseIf port = 21 Then
-                        portType = "FTP Server"
-                    ElseIf port = 22 Then
-                        portType = "SSH Server"
-                    Else
-                        portType = "Unknown"
-                    End If
-                    Console.WriteLine(" - " & port & "  (" & portType & ")")
-                Next
-                
-                Console.WriteLine("Open ports required for crack: " & CurrentComputer.NeedCrackPortsCount)
-                Return cmd
-
-            ElseIf cmd = "porthack" Then
-                Entropy.System.Process.StartProcess(New Porthack(CurrentComputer), Game.GetMaxRam(), Game.GetUsedRam())
-                Return cmd
-            ElseIf cmd = "read"
-                ' read <file> - 顯示檔案內容，支援 bin/config.txt 與當前目錄
-                If Args.Length = 0 Then
-                    Console.WriteLine("Usage: read <file>")
-                    Return cmd
-                End If
-                Dim target As String = Args(0)
-                target = target.Replace("\"c, "/"c)
-
-                ' 防護：確保 Contents 已初始化
-                If CurrentComputer.Contents Is Nothing Then
-                    CurrentComputer.Contents = New Entropy.System.FileSys()
-                End If
-
-                Dim found As Entropy.System.File = Nothing
-
-                ' 1) 若有當前路徑，先在當前目錄尋找
-                If Not String.IsNullOrEmpty(Game.CurrentPath) Then
-                    Dim curDir As Entropy.System.Dir = Nothing
-                    For Each d As Entropy.System.Dir In CurrentComputer.Contents.Dirs
-                        If String.Equals(d.Name, Game.CurrentPath, StringComparison.OrdinalIgnoreCase) Then
-                            curDir = d : Exit For
-                        End If
-                    Next
-                    If curDir IsNot Nothing Then
-                        For Each f As Entropy.System.File In curDir.Files
-                            If String.Equals(f.Name, target, StringComparison.OrdinalIgnoreCase) OrElse String.Equals(f.Name, Game.CurrentPath & "/" & target, StringComparison.OrdinalIgnoreCase) Then
-                                found = f : Exit For
+                        Dim foundDir As Entropy.System.Dir = Nothing
+                        For Each d As Entropy.System.Dir In CurrentComputer.Contents.Dirs
+                            If d IsNot Nothing AndAlso d.Name = Game.CurrentPath Then
+                                foundDir = d : Exit For
                             End If
                         Next
+                        If foundDir IsNot Nothing Then
+                            For Each d As Entropy.System.Dir In foundDir.Dirs
+                                Console.WriteLine(d.Name & "/")
+                            Next
+                            For Each f As Entropy.System.File In foundDir.Files
+                                Console.WriteLine(f.Name)
+                            Next
+                        Else
+                            Console.WriteLine("No such directory: " & Game.CurrentPath)
+                        End If
                     End If
-                End If
-
-                ' 2) 在根 Files 中尋找（支援儲存為完整路徑如 "bin/config.txt"）
-                If found Is Nothing Then
-                    For Each f As Entropy.System.File In CurrentComputer.Contents.Files
-                        If String.Equals(f.Name.Replace("\"c, "/"c), target, StringComparison.OrdinalIgnoreCase) OrElse f.Name.EndsWith("/" & target, StringComparison.OrdinalIgnoreCase) Then
-                            found = f : Exit For
-                        End If
-                    Next
-                End If
-
-                ' 3) 若 target 包含目錄，嘗試完整路徑比對
-                If found Is Nothing AndAlso target.Contains("/") Then
-                    For Each f As Entropy.System.File In CurrentComputer.Contents.Files
-                        If String.Equals(f.Name.Replace("\"c, "/"c), target, StringComparison.OrdinalIgnoreCase) Then
-                            found = f : Exit For
-                        End If
-                    Next
-                End If
-
-                If found IsNot Nothing Then
-                    Console.WriteLine(found.Content)
-                Else
-                    Console.WriteLine("File not found: " & target)
-                End If
-                Return cmd
-            ElseIf cmd = "rm" Then
-                ' rm <pattern> - 支援萬用字元 * 與 ?
-                If Args.Length = 0 Then
-                    Console.WriteLine("Usage: rm <file|pattern>")
                     Return cmd
-                End If
 
-                Dim pattern As String = Args(0).Replace("\"c, "/"c).Trim()
-                If String.IsNullOrEmpty(pattern) Then
-                    Console.WriteLine("Invalid pattern")
+                ElseIf cmd = "dc" OrElse cmd = "disconnect" Then
+                    Console.WriteLine("Disconnected.")
+                    CurrentComputer = Server.root
                     Return cmd
-                End If
 
-                If CurrentComputer.Contents Is Nothing Then
-                    CurrentComputer.Contents = New Entropy.System.FileSys()
-                End If
+                ElseIf cmd = "cd" Then
+                    If Args.Length = 0 Then
+                        Console.WriteLine("Usage: cd <dir|..>")
+                        Return cmd
+                    End If
+                    If Args(0) = ".." Then
+                        Game.CurrentPath = ""
+                    Else
+                        Game.CurrentPath = Args(0)
+                    End If
+                    Return cmd
 
-                ' 轉為 regex（簡單方式，escape 後替換 \* -> .* 與 \? -> .）
-                Dim esc As String = System.Text.RegularExpressions.Regex.Escape(pattern)
-                esc = esc.Replace("\*", ".*").Replace("\?", ".")
-                Dim rx As New System.Text.RegularExpressions.Regex("^" & esc & "$", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                ElseIf cmd = "probe" OrElse cmd = "nmap" Then
+                    If CurrentComputer Is Nothing Then
+                        Console.WriteLine("No computer connected.")
+                        Return cmd
+                    End If
+                    Dim portType As String
+                    Console.WriteLine("Open ports: ")
+                    If CurrentComputer.OpenPorts IsNot Nothing Then
+                        For Each port As Integer In CurrentComputer.OpenPorts
+                            If port = 80 Then
+                                portType = "HTTP WebServer"
+                            ElseIf port = 25 Then
+                                portType = "SMTP Mail Server"
+                            ElseIf port = 21 Then
+                                portType = "FTP Server"
+                            ElseIf port = 22 Then
+                                portType = "SSH Server"
+                            Else
+                                portType = "Unknown"
+                            End If
+                            Console.WriteLine(" - " & port & "  (" & portType & ")")
+                        Next
+                    End If
+                    Console.WriteLine("Open ports required for crack: " & CurrentComputer.NeedCrackPortsCount)
+                    Return cmd
 
-                Dim deletedCount As Integer = 0
+                ElseIf cmd = "porthack" Then
+                    If CurrentComputer IsNot Nothing Then
+                        Entropy.System.Process.StartProcess(New Porthack(CurrentComputer), Game.GetMaxRam(), Game.GetUsedRam(), True)
+                    Else
+                        Console.WriteLine("No computer connected.")
+                    End If
+                    Return cmd
 
-                ' 若 pattern 包含路徑分隔，直接比對完整路徑（檔案儲存名稱可能為 "bin/config.txt"）
-                If pattern.Contains("/") Then
-                    For i As Integer = CurrentComputer.Contents.Files.Count - 1 To 0 Step -1
-                        Dim fname As String = CurrentComputer.Contents.Files(i).Name.Replace("\"c, "/"c)
-                        If rx.IsMatch(fname) OrElse rx.IsMatch(System.IO.Path.GetFileName(fname)) Then
-                            CurrentComputer.Contents.Files.RemoveAt(i)
-                            deletedCount += 1
-                        End If
-                    Next
-                Else
-                    ' 刪除當前目錄內符合的檔案（如果有目錄結構）
+                ElseIf cmd = "read" Then
+                    If Args.Length = 0 Then
+                        Console.WriteLine("Usage: read <file>")
+                        Return cmd
+                    End If
+                    Dim target As String = Args(0).Replace("\"c, "/"c)
+
+                    If CurrentComputer.Contents Is Nothing Then CurrentComputer.Contents = New Entropy.System.FileSys()
+
+                    Dim found As Entropy.System.File = Nothing
+
                     If Not String.IsNullOrEmpty(Game.CurrentPath) Then
                         Dim curDir As Entropy.System.Dir = Nothing
                         For Each d As Entropy.System.Dir In CurrentComputer.Contents.Dirs
@@ -211,96 +159,184 @@ Namespace Terminals
                             End If
                         Next
                         If curDir IsNot Nothing Then
-                            For i As Integer = curDir.Files.Count - 1 To 0 Step -1
-                                Dim fname As String = curDir.Files(i).Name.Replace("\"c, "/"c)
-                                If rx.IsMatch(fname) OrElse rx.IsMatch(System.IO.Path.GetFileName(fname)) Then
-                                    curDir.Files.RemoveAt(i)
-                                    deletedCount += 1
+                            For Each f As Entropy.System.File In curDir.Files
+                                If String.Equals(f.Name, target, StringComparison.OrdinalIgnoreCase) OrElse String.Equals(f.Name, Game.CurrentPath & "/" & target, StringComparison.OrdinalIgnoreCase) Then
+                                    found = f : Exit For
                                 End If
                             Next
                         End If
                     End If
 
-                    ' 再在根目錄 Files 刪除符合的
-                    For i As Integer = CurrentComputer.Contents.Files.Count - 1 To 0 Step -1
-                        Dim fname As String = CurrentComputer.Contents.Files(i).Name.Replace("\"c, "/"c)
-                        If rx.IsMatch(fname) OrElse rx.IsMatch(System.IO.Path.GetFileName(fname)) Then
-                            CurrentComputer.Contents.Files.RemoveAt(i)
-                            deletedCount += 1
-                        End If
-                    Next
-                End If
+                    If found Is Nothing Then
+                        For Each f As Entropy.System.File In CurrentComputer.Contents.Files
+                            If String.Equals(f.Name.Replace("\"c, "/"c), target, StringComparison.OrdinalIgnoreCase) OrElse f.Name.EndsWith("/" & target, StringComparison.OrdinalIgnoreCase) Then
+                                found = f : Exit For
+                            End If
+                        Next
+                    End If
 
-                If deletedCount > 0 Then
-                    Console.WriteLine("Deleted " & deletedCount & " file(s)")
-                Else
-                    Console.WriteLine("File not found: " & pattern)
-                End If
+                    If found Is Nothing AndAlso target.Contains("/") Then
+                        For Each f As Entropy.System.File In CurrentComputer.Contents.Files
+                            If String.Equals(f.Name.Replace("\"c, "/"c), target, StringComparison.OrdinalIgnoreCase) Then
+                                found = f : Exit For
+                            End If
+                        Next
+                    End If
 
-                Return cmd
-            ElseIf cmd = "ps" Then
-                ' Display running processes
-                For Each proc As Entropy.System.Process In Game.Processes
-                    Console.WriteLine("Process ID: " & proc.PID & ", RAM Usage: " & proc.needRam & ", Name: " & proc.Name)
-                Next
-                Console.WriteLine("Total Processes: " & Game.Processes.Count)
-            ElseIf cmd = "kill" Then
-                Try
+                    If found IsNot Nothing Then
+                        Console.WriteLine(found.Content)
+                    Else
+                        Console.WriteLine("File not found: " & target)
+                    End If
+                    Return cmd
+
+                ElseIf cmd = "rm" Then
                     If Args.Length = 0 Then
-                        Console.WriteLine("Usage: kill <pid>")
+                        Console.WriteLine("Usage: rm <file|pattern>")
                         Return cmd
                     End If
 
-                    Dim pid As Integer
-                    If Not Integer.TryParse(Args(0), pid) Then
-                        Console.WriteLine("Invalid PID: " & Args(0))
+                    Dim pattern As String = Args(0).Replace("\"c, "/"c).Trim()
+                    If String.IsNullOrEmpty(pattern) Then
+                        Console.WriteLine("Invalid pattern")
                         Return cmd
                     End If
 
-                    ' 防護：Game.Processes 可能為 Nothing
+                    If CurrentComputer.Contents Is Nothing Then CurrentComputer.Contents = New Entropy.System.FileSys()
+
+                    Dim esc As String = System.Text.RegularExpressions.Regex.Escape(pattern)
+                    esc = esc.Replace("\*", ".*").Replace("\?", ".")
+                    Dim rx As New System.Text.RegularExpressions.Regex("^" & esc & "$", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+
+                    Dim deletedCount As Integer = 0
+
+                    If pattern.Contains("/") Then
+                        For i As Integer = CurrentComputer.Contents.Files.Count - 1 To 0 Step -1
+                            Dim fname As String = CurrentComputer.Contents.Files(i).Name.Replace("\"c, "/"c)
+                            If rx.IsMatch(fname) OrElse rx.IsMatch(System.IO.Path.GetFileName(fname)) Then
+                                CurrentComputer.Contents.Files.RemoveAt(i)
+                                deletedCount += 1
+                            End If
+                        Next
+                    Else
+                        If Not String.IsNullOrEmpty(Game.CurrentPath) Then
+                            Dim curDir As Entropy.System.Dir = Nothing
+                            For Each d As Entropy.System.Dir In CurrentComputer.Contents.Dirs
+                                If String.Equals(d.Name, Game.CurrentPath, StringComparison.OrdinalIgnoreCase) Then
+                                    curDir = d : Exit For
+                                End If
+                            Next
+                            If curDir IsNot Nothing Then
+                                For i As Integer = curDir.Files.Count - 1 To 0 Step -1
+                                    Dim fname As String = curDir.Files(i).Name.Replace("\"c, "/"c)
+                                    If rx.IsMatch(fname) OrElse rx.IsMatch(System.IO.Path.GetFileName(fname)) Then
+                                        curDir.Files.RemoveAt(i)
+                                        deletedCount += 1
+                                    End If
+                                Next
+                            End If
+                        End If
+
+                        For i As Integer = CurrentComputer.Contents.Files.Count - 1 To 0 Step -1
+                            Dim fname As String = CurrentComputer.Contents.Files(i).Name.Replace("\"c, "/"c)
+                            If rx.IsMatch(fname) OrElse rx.IsMatch(System.IO.Path.GetFileName(fname)) Then
+                                CurrentComputer.Contents.Files.RemoveAt(i)
+                                deletedCount += 1
+                            End If
+                        Next
+                    End If
+
+                    If deletedCount > 0 Then
+                        Console.WriteLine("Deleted " & deletedCount & " file(s)")
+                    Else
+                        Console.WriteLine("File not found: " & pattern)
+                    End If
+
+                    Return cmd
+
+                ElseIf cmd = "ps" Then
                     If Game.Processes Is Nothing OrElse Game.Processes.Count = 0 Then
                         Console.WriteLine("No processes running.")
                         Return cmd
                     End If
-
-                    Dim target As Entropy.System.Process = Nothing
-                    For Each p As Entropy.System.Process In Game.Processes
-                        If p IsNot Nothing AndAlso p.PID = pid Then
-                            target = p
-                            Exit For
+                    For Each proc As Entropy.System.Process In Game.Processes
+                        If proc IsNot Nothing Then
+                            Console.WriteLine("Process ID: " & proc.PID & ", RAM Usage: " & proc.needRam & ", Name: " & proc.Name)
                         End If
                     Next
+                    Console.WriteLine("Total Processes: " & Game.Processes.Count)
+                    Return cmd
 
-                    If target Is Nothing Then
-                        Console.WriteLine("Could not find process: " & pid)
-                        Return cmd
-                    End If
-
-                    ' 嘗試 kill 並從列表移除（Process.Kill 或 KillModule 取決於你的實作）
+                ElseIf cmd = "kill" Then
                     Try
-                        target.Kill()
+                        If Args.Length = 0 Then
+                            Console.WriteLine("Usage: kill <pid>")
+                            Return cmd
+                        End If
+
+                        Dim pid As Integer
+                        If Not Integer.TryParse(Args(0), pid) Then
+                            Console.WriteLine("Invalid PID: " & Args(0))
+                            Return cmd
+                        End If
+
+                        If Game.Processes Is Nothing OrElse Game.Processes.Count = 0 Then
+                            Console.WriteLine("No processes running.")
+                            Return cmd
+                        End If
+
+                        Dim targetIdx As Integer = -1
+                        For i As Integer = 0 To Game.Processes.Count - 1
+                            Dim p = Game.Processes(i)
+                            If p IsNot Nothing AndAlso p.PID = pid Then
+                                targetIdx = i : Exit For
+                            End If
+                        Next
+
+                        If targetIdx = -1 Then
+                            Console.WriteLine("Could not find process: " & pid)
+                            Return cmd
+                        End If
+
+                        Dim targetProc As Entropy.System.Process = Game.Processes(targetIdx)
+
+                        Dim stopped As Boolean = False
+                        Try
+                            stopped = targetProc.SafeStop(1000)
+                        Catch ex As Exception
+                            stopped = False
+                        End Try
+
+                        If Not stopped Then
+                            targetProc.Kill()
+                            System.Threading.Thread.Sleep(200)
+                        End If
+
+                        For i As Integer = Game.Processes.Count - 1 To 0 Step -1
+                            If Game.Processes(i) Is Nothing OrElse Game.Processes(i).PID = pid Then
+                                Game.Processes.RemoveAt(i)
+                                Exit For
+                            End If
+                        Next
+
+                        Console.WriteLine("Killed process: " & pid)
                     Catch ex As Exception
+                        Console.WriteLine("ERROR running kill: " & ex.Message)
                     End Try
 
-                    ' 移除已終止的 process（容錯）
-                    For i As Integer = Game.Processes.Count - 1 To 0 Step -1
-                        If Game.Processes(i) Is Nothing OrElse Game.Processes(i).PID = pid Then
-                            Game.Processes.RemoveAt(i)
-                            Exit For
-                        End If
-                    Next
+                    Return cmd
 
-                    Console.WriteLine("Killed process: " & pid)
-                Catch ex As Exception
-                    Console.WriteLine("ERROR running kill: " & ex.Message)
-                    Console.WriteLine(ex.StackTrace)
-                End Try
+                Else
+                    Console.WriteLine("Unknown command: " & cmd)
+                End If
 
                 Return cmd
-            Else 
-                Console.WriteLine("Unknown command: " & cmd)
-            End If
-            Return cmd
+
+            Catch ex As Exception
+                Console.WriteLine("Unhandled terminal error: " & ex.Message)
+                Console.WriteLine(ex.StackTrace)
+                Return "Error"
+            End Try
         End Function
     End Class
 End Namespace
