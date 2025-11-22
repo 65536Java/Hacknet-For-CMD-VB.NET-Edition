@@ -18,6 +18,15 @@ Namespace Entropy.System
             Next
             Files = New List(Of File)()
         End Sub
+        Public Function GetIndexDFiB(Name As String) As Dir
+            For i As Integer = 0 To Dirs.Count - 1
+                If Dirs(i).Name = Name Then
+                    Return Dirs(i)
+                End If
+            Next
+            
+            Return Nothing
+        End Function
     End Class
 
     Public Class Dir

@@ -1,0 +1,24 @@
+[
+  {
+    "name": "My Computer",
+    "ip": "116.121.4.6",
+    "proxy": true,
+    "firewall": true,
+    "is_admin": true,
+    "need_crack_ports": 4,
+    "connected_servers": ["123.252.1.7"]
+  },
+  {
+    "name": "Mott.com",
+    "ip": "123.252.1.7",
+    "need_crack_ports": 0,
+    "is_admin": false,
+    "contents": {
+      "files": [
+        { 
+          "name": "config.txt", "content": "00101101011001011010101010100101001001010110101001110010"
+        } 
+      ] 
+    }
+  }
+]

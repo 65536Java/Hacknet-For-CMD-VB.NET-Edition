@@ -11,7 +11,7 @@ Imports System.Collections.Generic
 Imports Terminals
 Public Module Game
     ' 將 Directory/player 提升到模組層級
-    Dim BaseDir As String
+    Public BaseDir As String
     Private player As SoundPlayer
     Private playerName As String
     Public CurrentPath As String = ""

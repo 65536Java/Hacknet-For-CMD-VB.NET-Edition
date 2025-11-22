@@ -11,13 +11,18 @@ Public Class Porthack
         needRam = 246
     End Sub
     Public Overrides Sub ProcessMain()
-        Console.WriteLine("Porthack initialized -- Running...")
-        For i As Integer = 1 To 100
-            Thread.Sleep(50)
-            Console.WriteLine(RandomString(10) & "          " & RandomString(10))
-        Next
-        Computer.IsCracked = True
-        Console.WriteLine("Porthack complete - Password Found.")
+        If Computer.CrackedPorts = Computer.NeedCrackPortsCount Then
+            Console.WriteLine("Porthack initialized -- Running...")
+            For i As Integer = 1 To 100
+                Dim str As String = RandomString(10)
+                Thread.Sleep(50)
+                Console.WriteLine(str & "          " & RandomString(10))
+            Next
+            Computer.IsAdmin = True
+            Console.WriteLine("Porthack complete - Password Found.")
+        Else
+            Console.WriteLine("Porthack failed - Not enough ports cracked.")
+        End If
         Kill()
     End Sub
     Function RandomString(length As Integer) As String

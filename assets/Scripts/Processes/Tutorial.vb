@@ -3,6 +3,7 @@ Imports System
 Imports System.IO
 Imports Server
 Imports Engine
+Imports Audio
 Imports Entropy.System
 Imports System.Linq
 Imports Terminals
@@ -17,7 +18,8 @@ Public Class Tutorial
     End Sub
     Public Overrides Sub ProcessMain()
         Dim temp As String
-        Dim list = New ServerInfoParse().LoadServers(Path.Combine("assets", "Missions", "Tutorial.json"))
+        AudioUtil.GetSoundPlayer(Game.BaseDir,"assets\audios\¡A Todo Plan!.wav").PlayLooping()
+        Dim list = New ServerInfoParse().LoadServers(Path.Combine("assets", "Nodes", "Tutorial.json"))
         If list Is Nothing Then
             ServersAvailable = New HNServer() {}
         Else
@@ -101,10 +103,10 @@ Public Class Tutorial
         Console.WriteLine("Tutorial:")
         Console.WriteLine("To view contents of the current folder you're in use the command ls.")
         Console.WriteLine("These are no programs here, but you should look at config.txt")
-        Console.WriteLine("Use the read [file] to view the contents of a file.")
+        Console.WriteLine("Use the cat [file] to view the contents of a file.")
         Do
             temp = Terminal.terminal(ServersAvailable, CurrentComputer)
-        Loop While temp <> "read"
+        Loop While temp <> "cat"
         Console.WriteLine("Tutorial:")
         Console.WriteLine("Totally useless!")
         Console.WriteLine("Now clear your tracks before you leave.")

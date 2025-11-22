@@ -22,8 +22,9 @@ Public Module Server
             UserName = ""
             Password = ""
             CanLogin = False
+            
         End Sub
-
+        Public Property CrackedPorts As Integer
         Public Property IP As String
         Public Property Name As String
         Public Property OpenPorts() As Integer()
@@ -33,7 +34,7 @@ Public Module Server
         Public Property HasTrace As Boolean
         Public Property TraceSpeed As Single
         Public Property ConnectedServers() As String()
-        Public Property IsCracked As Boolean
+        Public Property IsAdmin As Boolean
         Public Property UserName As String
         Public Property Password As String
         Public Property CanLogin As Boolean
@@ -42,8 +43,16 @@ Public Module Server
         Public Property Contents As Entropy.System.FileSys
         ' 儲存原始 contents JSON 字串，之後再解析成 FileSys
         Public Property ContentsRaw As String
-
+        Public Sub Check()
+            If IP = "116.121.4.6" Then
+                IsAdmin = True
+            End If
+        End Sub
         Public Sub ScanServer()
+            If Not IsAdmin Then
+                Console.WriteLine("Admin permission is required for scan.")
+                Return
+            End If
             Console.WriteLine("Scanning: " & Name & " (" & IP & ")")
             If ConnectedServers Is Nothing OrElse ConnectedServers.Length = 0 Then
                 Console.WriteLine("  No connected servers.")
@@ -57,6 +66,7 @@ Public Module Server
 
         Public Function Login(userName As String, password As String) As Boolean
             If CanLogin AndAlso UserName = userName AndAlso Password = password Then
+                IsAdmin = True
                 Return True
             Else
                 Return False
@@ -247,10 +257,17 @@ Public Module Server
                         Next
                     End If
                 End If
+                ' is_admin
+                Dim isAdminMatch As Match = Regex.Match(s.ContentsRaw, """is_admin""\s*:\s*(true|false)", RegexOptions.IgnoreCase)
+                If isAdminMatch.Success Then
+                    s.IsAdmin = Boolean.Parse(isAdminMatch.Groups(1).Value)
+                Else
+                    s.IsAdmin = False
+                End If
 
                 ' Debug: 印出載入結果，方便確認
                 ' Console.WriteLine("Loaded server: " & s.Name & " (" & s.IP & "), files: " & s.Contents.Files.Count)
-
+                s.Check()
                 result.Add(s)
             Next
 

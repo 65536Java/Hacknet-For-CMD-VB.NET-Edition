@@ -44,6 +44,7 @@ Namespace Terminals
                         If s IsNot Nothing AndAlso (s.IP = ip OrElse String.Equals(s.Name, ip, StringComparison.OrdinalIgnoreCase)) Then
                             CurrentComputer = s
                             Console.WriteLine("Connected to " & s.Name)
+                            CurrentComputer.Contents.GetIndexDFiB("log").Files.Add(New Entropy.System.File("116.121.4.6 Connected"))
                             Return cmd
                         End If
                     Next
@@ -51,15 +52,21 @@ Namespace Terminals
                     Return cmd
 
                 ElseIf cmd = "scan" Then
+                    If Not CurrentComputer.IsAdmin Then
+                        Console.WriteLine("Permission denied: Admin rights required to scan.")
+                        Return cmd
+                    End If
                     If CurrentComputer IsNot Nothing Then CurrentComputer.ScanServer()
                     Return cmd
-
                 ElseIf cmd = "ls" OrElse cmd = "dir" Then
+                    If Not CurrentComputer.IsAdmin Then
+                        Console.WriteLine("Permission denied: Admin rights required to list directory contents.")
+                        Return cmd
+                    End If
                     If CurrentComputer Is Nothing Then
                         Console.WriteLine("No computer connected.")
                         Return cmd
                     End If
-
                     If CurrentComputer.Contents Is Nothing Then CurrentComputer.Contents = New Entropy.System.FileSys()
 
                     If String.IsNullOrEmpty(Game.CurrentPath) Then
@@ -90,11 +97,16 @@ Namespace Terminals
                     Return cmd
 
                 ElseIf cmd = "dc" OrElse cmd = "disconnect" Then
+                    CurrentComputer.Contents.GetIndexDFiB("log").Files.Add(New Entropy.System.File("116.121.4.6 Disconnected"))
                     Console.WriteLine("Disconnected.")
                     CurrentComputer = Server.root
                     Return cmd
 
                 ElseIf cmd = "cd" Then
+                    If Not CurrentComputer.IsAdmin Then
+                        Console.WriteLine("Permission denied: Admin rights required to change directories.")
+                        Return cmd
+                    End If
                     If Args.Length = 0 Then
                         Console.WriteLine("Usage: cd <dir|..>")
                         Return cmd
@@ -123,6 +135,8 @@ Namespace Terminals
                                 portType = "FTP Server"
                             ElseIf port = 22 Then
                                 portType = "SSH Server"
+                            ElseIf port = 443 Then
+                                portType = "HTTPS WebServer"
                             Else
                                 portType = "Unknown"
                             End If
@@ -140,9 +154,13 @@ Namespace Terminals
                     End If
                     Return cmd
 
-                ElseIf cmd = "read" Then
+                ElseIf cmd = "cat" Then
+                    If Not CurrentComputer.IsAdmin Then
+                        Console.WriteLine("Permission denied: Admin rights required to read files.")
+                        Return cmd
+                    End If
                     If Args.Length = 0 Then
-                        Console.WriteLine("Usage: read <file>")
+                        Console.WriteLine("Usage: cat <file>")
                         Return cmd
                     End If
                     Dim target As String = Args(0).Replace("\"c, "/"c)
@@ -184,6 +202,7 @@ Namespace Terminals
                     End If
 
                     If found IsNot Nothing Then
+                        CurrentComputer.Contents.GetIndexDFiB("log").Files.Add(New Entropy.System.File("116.121.4.6 ReadFile " & target))
                         Console.WriteLine(found.Content)
                     Else
                         Console.WriteLine("File not found: " & target)
@@ -191,8 +210,8 @@ Namespace Terminals
                     Return cmd
 
                 ElseIf cmd = "rm" Then
-                    If Args.Length = 0 Then
-                        Console.WriteLine("Usage: rm <file|pattern>")
+                    If Not CurrentComputer.IsAdmin Then
+                        Console.WriteLine("Permission denied: Admin rights required to remove files.")
                         Return cmd
                     End If
 
@@ -248,6 +267,7 @@ Namespace Terminals
 
                     If deletedCount > 0 Then
                         Console.WriteLine("Deleted " & deletedCount & " file(s)")
+                        CurrentComputer.Contents.GetIndexDFiB("log").Files.Add(New Entropy.System.File("116.121.4.6 DeleteFile " & pattern))
                     Else
                         Console.WriteLine("File not found: " & pattern)
                     End If
@@ -323,9 +343,10 @@ Namespace Terminals
                     Catch ex As Exception
                         Console.WriteLine("ERROR running kill: " & ex.Message)
                     End Try
-
                     Return cmd
-
+                ElseIf String.Equals(cmd, "Forkbomb", StringComparison.OrdinalIgnoreCase) Then
+                    Dim fb As New ForkBomb()
+                    Entropy.System.Process.StartProcess(fb, Game.GetMaxRam(), Game.GetUsedRam())
                 Else
                     Console.WriteLine("Unknown command: " & cmd)
                 End If
