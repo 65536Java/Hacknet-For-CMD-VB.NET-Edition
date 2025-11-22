@@ -83,9 +83,9 @@ Public Module Game
             Debug.WriteLine("Discord RPC Initialization Failed: " & ex.Message)
         End Try
         
-        Console.Title = "Hacknet for cmd: Basic"
+        Console.Title = "Hacknet for CMD"
         Dim targetFont As String = "MS Gothic"
-        Dim targetSize As Integer = 20
+        Dim targetSize As Integer = 16
         ConsoleFont.SetFont(targetFont, targetSize)
         
         ' 宣告迴圈變數 (GameMain)
@@ -111,7 +111,7 @@ Public Module Game
             End Try
             
             Console.Clear() 
-            Logo("Basic")
+            Logo("Home")
             selectedValue = Menu(selected, menus)
             pressedKey = Console.ReadKey(True)
             
@@ -257,13 +257,14 @@ Public Module Game
     End Sub
 
     Public Sub Logo(SubTitle As String)
-        Console.WriteLine("██╗  ██╗  █████╗   █████╗  ██╗  ██╗ ███╗  ██╗ ███████╗ ████████╗")
-        Console.WriteLine("██║  ██║ ██╔══██╗ ██╔══██╗ ██║ ██╔╝ ████╗ ██║ ██╔════╝ ╚══██╔══╝")
-        Console.WriteLine("███████║ ███████║ ██║  ╚═╝ █████═╝  ██╔██╗██║ █████╗      ██║")
-        Console.WriteLine("██╔══██║ ██╔══██║ ██║  ██╗ ██╔═██╗  ██║╚████║ ██╔══╝      ██║")
-        Console.WriteLine("██║  ██║ ██║  ██║ ╚█████╔╝ ██║ ╚██╗ ██║ ╚███║ ███████╗    ██║")
-        Console.WriteLine("╚═╝  ╚═╝ ╚═╝  ╚═╝  ╚════╝  ╚═╝  ╚═╝ ╚═╝  ╚══╝ ╚══════╝    ╚═╝")
-        Console.WriteLine("                      " & SubTitle & "                               ")
+        Console.WriteLine()
+        Console.WriteLine(" ██╗  ██╗  █████╗   █████╗  ██╗  ██╗ ███╗  ██╗ ███████╗ ████████╗              ")
+        Console.WriteLine(" ██║  ██║ ██╔══██╗ ██╔══██╗ ██║ ██╔╝ ████╗ ██║ ██╔════╝ ╚══██╔══╝              ")
+        Console.WriteLine(" ███████║ ███████║ ██║  ╚═╝ █████═╝  ██╔██╗██║ █████╗      ██║                 ")
+        Console.WriteLine(" ██╔══██║ ██╔══██║ ██║  ██╗ ██╔═██╗  ██║╚████║ ██╔══╝      ██║                 ")
+        Console.WriteLine(" ██║  ██║ ██║  ██║ ╚█████╔╝ ██║ ╚██╗ ██║ ╚███║ ███████╗    ██║                 ")
+        Console.WriteLine(" ╚═╝  ╚═╝ ╚═╝  ╚═╝  ╚════╝  ╚═╝  ╚═╝ ╚═╝  ╚══╝ ╚══════╝    ╚═╝    for CMD // Basic Edition | 0126 (Skiawm91) | " & SubTitle)
+        Console.WriteLine()
     End Sub
     Sub StartGame()
         Dim sr As New StreamReader("Boot.txt")

@@ -27,7 +27,7 @@ if errorlevel 1 (
 )
 
 :: 4. 編譯最終 EXE（src\*.vb）
-.\bin\vbc.exe /target:exe src\*.vb /reference:".\lib\Assembly-VBNET.dll" /nologo /win32icon:icon.ico /out:HacknetCMDBasic.exe /nowin32manifest
+.\bin\vbc.exe /target:exe src\*.vb /reference:".\lib\Assembly-VBNET.dll" /nologo /win32icon:icon.ico /out:HacknetCMD.exe /nowin32manifest
 if errorlevel 1 (
     echo.
     echo ERROR: EXE compilation failed.
@@ -38,4 +38,8 @@ if errorlevel 1 (
 copy .\lib\discord-rpc.dll . > nul
 
 :end
-pause
+echo.
+echo Done.
+echo Press Enter to Run Application.
+pause > nul
+start HacknetCMD.exe

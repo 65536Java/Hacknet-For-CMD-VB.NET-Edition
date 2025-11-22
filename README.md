@@ -1,4 +1,5 @@
 # Hacknet for CMD: Basic Edition
+* There is "Skiawm91-Branch", it means some commit here only.
 Official Server: [1](https://discord.gg/TKfFQgZKC4) [2](https://discord.gg/Nbn8C4qjks)<br/>
 Other Versions:<br/>
 [Core Edition](https://github.com/Skiawm91/HacknetCMD-Core)(Recommend)<br/>
@@ -8,6 +9,6 @@ Other Developers:<br/>
 [Skiawm91](https://github.com/Skiawm91)<br/>
 [Hoyiqiang](https://github.com/Hoyiqiang)<br/>
 [Null(Me)](https://github.com/65536Java)<br/>
-# Now version: Beta 0125
+# Now version: Beta 0126 (Skiawm91)
 # Developing Progress: Tutorial Complete
 # Update Content: Add More Machines
