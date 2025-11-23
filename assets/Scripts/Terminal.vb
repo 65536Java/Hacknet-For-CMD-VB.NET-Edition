@@ -114,7 +114,31 @@ Namespace Terminals
                     If Args(0) = ".." Then
                         Game.CurrentPath = ""
                     Else
-                        Game.CurrentPath = Args(0)
+                        If String.IsNullOrEmpty(Game.CurrentPath) Then
+                            For Each d As Entropy.System.Dir In CurrentComputer.Contents.Dirs
+                                If d.Name = Args(0) Then
+                                    Game.CurrentPath = Args(0)
+                                    Return cmd
+                                End If
+                            Next
+                        Else
+                            Dim foundDir As Entropy.System.Dir = Nothing
+                            For Each d As Entropy.System.Dir In CurrentComputer.Contents.Dirs
+                                If d IsNot Nothing AndAlso d.Name = Game.CurrentPath Then
+                                    foundDir = d : Exit For
+                                End If
+                            Next
+                            If foundDir IsNot Nothing Then
+                                For Each d As Entropy.System.Dir In foundDir.Dirs
+                                    Console.WriteLine(d.Name & "/")
+                                Next
+                                For Each f As Entropy.System.File In foundDir.Files
+                                    Console.WriteLine(f.Name)
+                                Next
+                            Else
+                                Console.WriteLine("No such directory: " & Game.CurrentPath)
+                            End If
+                        End If
                     End If
                     Return cmd
 

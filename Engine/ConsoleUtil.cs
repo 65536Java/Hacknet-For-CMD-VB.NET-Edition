@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-namespace Engine
+namespace BCEngine
 {
     // ------------------------------------------------------------------
     // I. NativeMethods: 封裝所有 Windows API 宣告
@@ -54,7 +54,7 @@ namespace Engine
             for (int index = 0; index < str.Length; index++)
             {
                 Console.Write(str[index]);
-                Thread.Sleep(50);
+                Thread.Sleep(30);
             }
             Console.WriteLine("");
         }
@@ -84,6 +84,23 @@ namespace Engine
             {
                 // 捕捉任何潛在的 .NET 例外
                 return false; 
+            }
+        }
+        public static bool SetColor(ConsoleColor foreground, ConsoleColor background, bool clear = false)
+        {
+            try
+            {
+                Console.ForegroundColor = foreground;
+                Console.BackgroundColor = background;
+                if (clear)
+                {
+                    Console.Clear();
+                }
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }

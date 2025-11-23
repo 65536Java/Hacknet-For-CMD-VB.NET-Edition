@@ -1,5 +1,6 @@
-Imports Engine
+Imports BCEngine
 Imports Entropy.System
+Imports System.Threading
 Imports System
 Public Class ForkBomb
     Inherits Process
@@ -8,9 +9,11 @@ Public Class ForkBomb
     End Sub
     Public Overrides Sub ProcessMain()
         Console.WriteLine(RandomString01(10))
+        Thread.Sleep(20)
         Dim newProcess As New ForkBomb()
         Process.StartProcess(newProcess, Game.GetMaxRam(), Game.GetUsedRam())
         While True
+            Threading.Thread.Sleep(100)
         End While
     End Sub
     Function RandomString01(length As Integer) As String

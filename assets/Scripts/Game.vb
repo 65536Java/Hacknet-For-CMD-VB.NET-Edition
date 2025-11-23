@@ -5,8 +5,8 @@ Imports System.Diagnostics
 Imports System.Threading
 Imports Audio
 Imports Server
-Imports Engine
-Imports Engine.Security
+Imports BCEngine
+Imports BCEngine.Security
 Imports System.Collections.Generic
 Imports Terminals
 Public Module Game
@@ -15,8 +15,8 @@ Public Module Game
     Private player As SoundPlayer
     Private playerName As String
     Public CurrentPath As String = ""
-    Dim RAM As Integer = 761
-    Dim UsedRAM As Integer = 0
+    Public ReadOnly RAM As Integer = 761
+    Public UsedRAM As Integer = 0
     Public Processes As New List(Of Entropy.System.Process)
     Public CurrentComputer As HNServer
     Sub CreateDirectory(path As String)
@@ -42,7 +42,7 @@ Public Module Game
     Public Sub SetDiscordStatus(details As String, Optional state As String = "Playing Hacknet CMD Basic", Optional largeText As String = "HACKNET OS")
         Try
             ' 創建新的 RichPresence 結構體 (來自 Engine 命名空間)
-            Dim presence As New Engine.RichPresence()
+            Dim presence As New BCEngine.RichPresence()
             
             ' FIX: 截斷字串以確保長度不超過 RichPresence 結構體中的固定大小
             ' details 和 state 限制為 128，所以截取到 127
@@ -54,7 +54,7 @@ Public Module Game
             presence.largeImageText = If(largeText.Length > 255, largeText.Substring(0, 255), largeText)
             
             ' 呼叫 P/Invoke 更新狀態
-            Engine.DiscordRPC.UpdatePresence(presence)
+            BCEngine.DiscordRPC.UpdatePresence(presence)
             
         Catch ex As Exception
             ' 忽略 Discord RPC 失敗，防止程式崩潰
@@ -65,7 +65,28 @@ Public Module Game
     Public Function GetConnectedServer(server As HNServer) As String()
         Return server.ConnectedServers
     End Function
+    Public Sub BSoD()
+        player.Stop()
+        Console.Clear()
+        Thread.Sleep(2000)
+        ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Blue, True)
+        Console.WriteLine("A problem has been detected and HacknetOS has been shut down to prevent damage to your computer.")
 
+        Console.WriteLine("PAGE_FAULT_IN_NONPAGED_AREA")
+
+        Console.WriteLine("If this is the first time you've seen this stop error screen, restart your computer. If this screen appears again, follow these steps:")
+
+        Console.WriteLine("Check to make sure any new hardware or software is properly installed. If this is a new installation, ask your hardware or software manufacturer for any Windows updates you might need.")
+        Console.WriteLine("If problems continue, disable or remove any newly installed hardware or software. Disable BIOS memory options such as caching or shadowing. If you need to use Safe Mode to remove or disable components, restart your computer, press F8 to select Advanced Startup Options, and then select Safe Mode.")
+
+        Console.WriteLine("Technical information:")
+
+        Console.WriteLine("*** STOP: 0x00000050 (0xFD3094C2, 0x00000001, 0xFBFE7617, 0x00000000)")
+
+        Console.WriteLine("*** atikmdag.sys - Address FBFE7617 base at FBFE5000, DateStamp 3d6de5a5")
+        Thread.Sleep(5000)
+        StartGame()
+    End Sub
     Public Sub GameMain(Dir As String)
         Dim DiscordAppID As String = "1428378052223697007" 
         
@@ -75,7 +96,7 @@ Public Module Game
         ' *** Discord RPC 初始化 (使用 P/Invoke Wrapper) ***
         Try
             ' VB.NET 2012 嚴格要求所有參數都用括號包住
-            Engine.DiscordRPC.Initialize(DiscordAppID, IntPtr.Zero, True, Nothing)
+            BCEngine.DiscordRPC.Initialize(DiscordAppID, IntPtr.Zero, True, Nothing)
             
             ' 設定初始狀態 (主選單)
             SetDiscordStatus("In Main Menu")
@@ -105,7 +126,7 @@ Public Module Game
             ' *** 定期呼叫 Discord_RunCallbacks (P/Invoke) ***
             Try
                 ' VB.NET 2012 嚴格要求無參數呼叫也要用括號
-                Engine.DiscordRPC.RunCallbacks()
+                BCEngine.DiscordRPC.RunCallbacks()
             Catch
                 ' 忽略 RunCallbacks 失敗
             End Try
@@ -131,7 +152,7 @@ Public Module Game
                 If selectedValue = "Exit" Then
                     ' *** 關閉 Discord RPC (P/Invoke) ***
                     Try
-                        Engine.DiscordRPC.Shutdown() 
+                        BCEngine.DiscordRPC.Shutdown() 
                     Catch
                         ' 忽略 Shutdown 失敗
                     End Try
@@ -162,7 +183,7 @@ Public Module Game
         While True
             ' *** 定期呼叫 Discord_RunCallbacks (P/Invoke) ***
             Try
-                Engine.DiscordRPC.RunCallbacks()
+                BCEngine.DiscordRPC.RunCallbacks()
             Catch
                 ' 忽略 RunCallbacks 失敗
             End Try
@@ -267,6 +288,9 @@ Public Module Game
         Console.WriteLine()
     End Sub
     Sub StartGame()
+        UsedRAM = 0
+        Entropy.System.Process.StartProcess(New BGProc(), Game.GetMaxRam(), Game.GetUsedRam())
+        ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Black, True)
         Dim sr As New StreamReader("Boot.txt")
         player.Stop()
         Dim line As String = ""
@@ -307,7 +331,7 @@ Public Module Game
             ConsoleUtil.PrintWithDelay("I guess I'm supposed to write this in past tense, though I hardly feel like admitting it's over.")
             Console.WriteLine("")
             Thread.Sleep(1000)
-            ConsoleUtil.PrintWithDelay("My name is Bit, and if you're reading this, I'm already dead.")
+            ConsoleUtil.PrintWithDelay("My name is Byte, and if you're reading this, I'm already dead.")
             Thread.Sleep(1000)
             For i As Integer = 0 To 10
                 Console.Clear()
