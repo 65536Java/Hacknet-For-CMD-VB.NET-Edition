@@ -67,27 +67,27 @@ Public Module Game
     End Function
     Public Sub BSoD()
         player.Stop()
-        For Each P As Entropy.System.Process In Processes
-            P.Kill()
-        Next
         Console.Clear()
         Thread.Sleep(2000)
-        ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Blue)
-        Dim fileIO As New BCEngine.IO.FileHandler("BSoD.txt")
-        Do
-            Dim line As String = fileIO.ReadLine()
-            If line Is Nothing Then
-                Exit Do
-            End If
-            Console.WriteLine(line)
-        Loop
-        fileIO.Dispose()
+        ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Blue, True)
+        Console.WriteLine("A problem has been detected and HacknetOS has been shut down to prevent damage to your computer.")
+
+        Console.WriteLine("PAGE_FAULT_IN_NONPAGED_AREA")
+
+        Console.WriteLine("If this is the first time you've seen this stop error screen, restart your computer. If this screen appears again, follow these steps:")
+
+        Console.WriteLine("Check to make sure any new hardware or software is properly installed. If this is a new installation, ask your hardware or software manufacturer for any Windows updates you might need.")
+        Console.WriteLine("If problems continue, disable or remove any newly installed hardware or software. Disable BIOS memory options such as caching or shadowing. If you need to use Safe Mode to remove or disable components, restart your computer, press F8 to select Advanced Startup Options, and then select Safe Mode.")
+
+        Console.WriteLine("Technical information:")
+
+        Console.WriteLine("*** STOP: 0x00000050 (0xFD3094C2, 0x00000001, 0xFBFE7617, 0x00000000)")
+
+        Console.WriteLine("*** atikmdag.sys - Address FBFE7617 base at FBFE5000, DateStamp 3d6de5a5")
         Thread.Sleep(5000)
-        Console.Clear()
         StartGame()
     End Sub
     Public Sub GameMain(Dir As String)
-        ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Black)
         Dim DiscordAppID As String = "1428378052223697007" 
         
         ' 儲存 BaseDir 到模組變數
@@ -287,6 +287,9 @@ Public Module Game
         Console.WriteLine("                      " & SubTitle & "                               ")
     End Sub
     Sub StartGame()
+        UsedRAM = 0
+        Entropy.System.Process.StartProcess(New BGProc(), Game.GetMaxRam(), Game.GetUsedRam())
+        ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Black, True)
         Dim sr As New StreamReader("Boot.txt")
         player.Stop()
         Dim line As String = ""

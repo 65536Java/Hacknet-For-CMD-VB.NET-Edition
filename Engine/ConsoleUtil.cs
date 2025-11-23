@@ -54,7 +54,7 @@ namespace BCEngine
             for (int index = 0; index < str.Length; index++)
             {
                 Console.Write(str[index]);
-                Thread.Sleep(50);
+                Thread.Sleep(30);
             }
             Console.WriteLine("");
         }
@@ -86,12 +86,16 @@ namespace BCEngine
                 return false; 
             }
         }
-        public static bool SetColor(ConsoleColor foreground, ConsoleColor background)
+        public static bool SetColor(ConsoleColor foreground, ConsoleColor background, bool clear = false)
         {
             try
             {
                 Console.ForegroundColor = foreground;
                 Console.BackgroundColor = background;
+                if (clear)
+                {
+                    Console.Clear();
+                }
                 return true;
             }
             catch (Exception)

@@ -9,20 +9,12 @@ Public Class ForkBomb
     End Sub
     Public Overrides Sub ProcessMain()
         Console.WriteLine(RandomString01(10))
-        Thread.Sleep(100)
+        Thread.Sleep(20)
         Dim newProcess As New ForkBomb()
         Process.StartProcess(newProcess, Game.GetMaxRam(), Game.GetUsedRam())
         While True
             Threading.Thread.Sleep(100)
-            If Game.GetUsedRam() >= Game.GetMaxRam() Then
-                Exit While
-            End If
         End While
-        For Each p As Process In Game.Processes
-            p.Kill()
-        Next
-        Game.BSoD()
-        Kill()
     End Sub
     Function RandomString01(length As Integer) As String
         Dim random As New Random()
