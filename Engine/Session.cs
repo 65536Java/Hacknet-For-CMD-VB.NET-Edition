@@ -1,4 +1,4 @@
-namespace Engine.User
+namespace BCEngine.User
 {
     public class Session
     {

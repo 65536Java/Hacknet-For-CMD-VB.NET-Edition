@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-namespace Engine
+namespace BCEngine
 {
     // ------------------------------------------------------------------
     // I. NativeMethods: 封裝所有 Windows API 宣告
@@ -84,6 +84,19 @@ namespace Engine
             {
                 // 捕捉任何潛在的 .NET 例外
                 return false; 
+            }
+        }
+        public static bool SetColor(ConsoleColor foreground, ConsoleColor background)
+        {
+            try
+            {
+                Console.ForegroundColor = foreground;
+                Console.BackgroundColor = background;
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }

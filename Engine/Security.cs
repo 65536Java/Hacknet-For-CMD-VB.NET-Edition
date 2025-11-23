@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-namespace Engine.Security
+namespace BCEngine.Security
 {
     public class Security
     {

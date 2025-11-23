@@ -56,6 +56,8 @@ Namespace Entropy.System
         ' 溫和停止（設定旗標，ProcessMain 應檢查此旗標以結束）
         Public Sub Kill()
             isActived = False
+            Game.usedRam -= Me.needRam
+            Console.Title = "HacknetCMD: Basic - RAM:" & Game.GetUsedRam() & "/" & Game.GetMaxRam()
         End Sub
 
         ' 嘗試等待執行緒在 timeoutMs 毫秒內結束（若為阻塞模式呼叫者自行等待即可）
@@ -70,6 +72,8 @@ Namespace Entropy.System
             Catch
                 Return False
             End Try
+            Game.usedRam -= Me.needRam
+            Console.Title = "HacknetCMD: Basic - RAM:" & Game.GetUsedRam() & "/" & Game.GetMaxRam()
         End Function
 
         Public ReadOnly Property IsAlive As Boolean
@@ -85,7 +89,8 @@ Namespace Entropy.System
 
         Public Shared Sub StartProcess(p As Process, maxRam As Integer, usedRam As Integer, Optional blocking As Boolean = False)
             If p Is Nothing Then Return
-
+            Game.usedRam += p.needRam
+            Console.Title = "HacknetCMD: Basic - RAM:" & Game.GetUsedRam() & "/" & Game.GetMaxRam()
             If p.needRam + usedRam > maxRam Then
                 Console.WriteLine("Not enough RAM to start process: " & p.Name)
                 Return
@@ -101,6 +106,7 @@ Namespace Entropy.System
             Else
                 p.Start()
             End If
+            Console.Title = "HacknetCMD: Basic - RAM:" & usedRam & "/" & maxRam
         End Sub
 
         Public MustOverride Sub ProcessMain()

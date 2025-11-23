@@ -5,8 +5,8 @@ Imports System.Diagnostics
 Imports System.Threading
 Imports Audio
 Imports Server
-Imports Engine
-Imports Engine.Security
+Imports BCEngine
+Imports BCEngine.Security
 Imports System.Collections.Generic
 Imports Terminals
 Public Module Game
@@ -15,8 +15,8 @@ Public Module Game
     Private player As SoundPlayer
     Private playerName As String
     Public CurrentPath As String = ""
-    Dim RAM As Integer = 761
-    Dim UsedRAM As Integer = 0
+    Public ReadOnly RAM As Integer = 761
+    Public UsedRAM As Integer = 0
     Public Processes As New List(Of Entropy.System.Process)
     Public CurrentComputer As HNServer
     Sub CreateDirectory(path As String)
@@ -42,7 +42,7 @@ Public Module Game
     Public Sub SetDiscordStatus(details As String, Optional state As String = "Playing Hacknet CMD Basic", Optional largeText As String = "HACKNET OS")
         Try
             ' 創建新的 RichPresence 結構體 (來自 Engine 命名空間)
-            Dim presence As New Engine.RichPresence()
+            Dim presence As New BCEngine.RichPresence()
             
             ' FIX: 截斷字串以確保長度不超過 RichPresence 結構體中的固定大小
             ' details 和 state 限制為 128，所以截取到 127
@@ -54,7 +54,7 @@ Public Module Game
             presence.largeImageText = If(largeText.Length > 255, largeText.Substring(0, 255), largeText)
             
             ' 呼叫 P/Invoke 更新狀態
-            Engine.DiscordRPC.UpdatePresence(presence)
+            BCEngine.DiscordRPC.UpdatePresence(presence)
             
         Catch ex As Exception
             ' 忽略 Discord RPC 失敗，防止程式崩潰
@@ -65,8 +65,29 @@ Public Module Game
     Public Function GetConnectedServer(server As HNServer) As String()
         Return server.ConnectedServers
     End Function
-
+    Public Sub BSoD()
+        player.Stop()
+        For Each P As Entropy.System.Process In Processes
+            P.Kill()
+        Next
+        Console.Clear()
+        Thread.Sleep(2000)
+        ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Blue)
+        Dim fileIO As New BCEngine.IO.FileHandler("BSoD.txt")
+        Do
+            Dim line As String = fileIO.ReadLine()
+            If line Is Nothing Then
+                Exit Do
+            End If
+            Console.WriteLine(line)
+        Loop
+        fileIO.Dispose()
+        Thread.Sleep(5000)
+        Console.Clear()
+        StartGame()
+    End Sub
     Public Sub GameMain(Dir As String)
+        ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Black)
         Dim DiscordAppID As String = "1428378052223697007" 
         
         ' 儲存 BaseDir 到模組變數
@@ -75,7 +96,7 @@ Public Module Game
         ' *** Discord RPC 初始化 (使用 P/Invoke Wrapper) ***
         Try
             ' VB.NET 2012 嚴格要求所有參數都用括號包住
-            Engine.DiscordRPC.Initialize(DiscordAppID, IntPtr.Zero, True, Nothing)
+            BCEngine.DiscordRPC.Initialize(DiscordAppID, IntPtr.Zero, True, Nothing)
             
             ' 設定初始狀態 (主選單)
             SetDiscordStatus("In Main Menu")
@@ -105,7 +126,7 @@ Public Module Game
             ' *** 定期呼叫 Discord_RunCallbacks (P/Invoke) ***
             Try
                 ' VB.NET 2012 嚴格要求無參數呼叫也要用括號
-                Engine.DiscordRPC.RunCallbacks()
+                BCEngine.DiscordRPC.RunCallbacks()
             Catch
                 ' 忽略 RunCallbacks 失敗
             End Try
@@ -131,7 +152,7 @@ Public Module Game
                 If selectedValue = "Exit" Then
                     ' *** 關閉 Discord RPC (P/Invoke) ***
                     Try
-                        Engine.DiscordRPC.Shutdown() 
+                        BCEngine.DiscordRPC.Shutdown() 
                     Catch
                         ' 忽略 Shutdown 失敗
                     End Try
@@ -162,7 +183,7 @@ Public Module Game
         While True
             ' *** 定期呼叫 Discord_RunCallbacks (P/Invoke) ***
             Try
-                Engine.DiscordRPC.RunCallbacks()
+                BCEngine.DiscordRPC.RunCallbacks()
             Catch
                 ' 忽略 RunCallbacks 失敗
             End Try
@@ -306,7 +327,7 @@ Public Module Game
             ConsoleUtil.PrintWithDelay("I guess I'm supposed to write this in past tense, though I hardly feel like admitting it's over.")
             Console.WriteLine("")
             Thread.Sleep(1000)
-            ConsoleUtil.PrintWithDelay("My name is Bit, and if you're reading this, I'm already dead.")
+            ConsoleUtil.PrintWithDelay("My name is Byte, and if you're reading this, I'm already dead.")
             Thread.Sleep(1000)
             For i As Integer = 0 To 10
                 Console.Clear()
