@@ -1,5 +1,5 @@
 # Hacknet for CMD: Basic Edition
-* There is "Skiawm91-Branch", it means some commit here only.
+* Here is "Skiawm91-Branch", it means some commit here only.
 Official Server: [1](https://discord.gg/TKfFQgZKC4) [2](https://discord.gg/Nbn8C4qjks)<br/>
 Other Versions:<br/>
 [Core Edition](https://github.com/Skiawm91/HacknetCMD-Core)(Recommend)<br/>
