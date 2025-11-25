@@ -18,7 +18,6 @@ Public Class Tutorial
     End Sub
     Public Overrides Sub ProcessMain()
         Dim temp As String
-        AudioUtil.GetSoundPlayer(Game.BaseDir,"assets\audios\¡A Todo Plan!.wav").PlayLooping()
         Dim list = New ServerInfoParse().LoadServers(Path.Combine("assets", "Nodes", "Tutorial.json"))
         If list Is Nothing Then
             ServersAvailable = New HNServer() {}

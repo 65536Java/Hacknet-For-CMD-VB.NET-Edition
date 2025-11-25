@@ -1,14 +1,5 @@
 [
   {
-    "name": "My Computer",
-    "ip": "116.121.4.6",
-    "proxy": true,
-    "firewall": true,
-    "is_admin": true,
-    "need_crack_ports": 4,
-    "connected_servers": ["123.252.1.7"]
-  },
-  {
     "name": "Mott.com",
     "ip": "123.252.1.7",
     "need_crack_ports": 0,
@@ -16,9 +7,40 @@
     "contents": {
       "files": [
         { 
-          "name": "config.txt", "content": "00101101011001011010101010100101001001010110101001110010"
+          "name": "bin/config.txt", "content": "00101101011001011010101010100101001001010110101001110010"
         } 
       ] 
+    }
+  },
+  {
+    "name":"Bitwise Test PC",
+    "ip":"64.125.72.81",
+    "need_crack_ports": 0,
+    "is_admin":false
+  },
+  {
+    "name": "My Computer",
+    "ip": "116.121.4.6",
+    "proxy": true,
+    "firewall": true,
+    "is_admin": true,
+    "need_crack_ports": 4,
+    "connected_servers": ["123.252.1.7"],
+    "contents":{
+      "files":[
+        {
+          "name": "bin/Porthack.exe",
+          "content" : "110101010010101101101010110000100101101010100011001010101"
+        },
+        {
+          "name": "bin/Forkbomb.exe",
+          "content" : "101110101010100101010"
+        },
+        {
+          "name": "bin/Tutorial.exe",
+          "content" : "010101000010010100010010100011100010010100100101000010001100100101010010010100101010101010010010001001001010010101000100100111"
+        }
+      ]
     }
   }
 ]

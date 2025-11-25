@@ -1,0 +1,6 @@
+C:\Users\123\OneDrive\Desktop\Code\Hacknet VB\obj\Debug\net8.0\HacknetVB.vbproj.AssemblyReference.cache
+C:\Users\123\OneDrive\Desktop\Code\Hacknet VB\obj\Debug\net8.0\HacknetVB.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\123\OneDrive\Desktop\Code\Hacknet VB\obj\Debug\net8.0\HacknetVB.AssemblyInfoInputs.cache
+C:\Users\123\OneDrive\Desktop\Code\Hacknet VB\obj\Debug\net8.0\HacknetVB.AssemblyInfo.vb
+C:\Users\123\OneDrive\Desktop\Code\Hacknet VB\obj\Debug\net8.0\HacknetVB.vbproj.CoreCompileInputs.cache
+C:\Users\123\OneDrive\Desktop\Code\Hacknet VB\obj\Debug\net8.0\HacknetVB.sourcelink.json

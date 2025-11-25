@@ -24,8 +24,25 @@ Namespace Entropy.System
                     Return Dirs(i)
                 End If
             Next
-            
+
             Return Nothing
+        End Function
+        Public Function FileExist(DirN As String, FileN As String)
+            Dim targetDir As Dir
+            Dim exist As Boolean = False
+            For Each d As Dir In Dirs
+                If d.Name = DirN Then
+                    targetDir = d
+                    For Each f As File In targetDir.Files
+                        If f.Name = FileN Then
+                            exist = True
+                            Exit For
+                        End If
+                    Next
+                    Exit For
+                End If
+            Next
+            Return exist
         End Function
     End Class
 

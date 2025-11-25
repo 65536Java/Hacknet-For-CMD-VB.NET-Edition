@@ -1,6 +1,5 @@
 Imports System
 Imports System.Threading
-
 Namespace Terminals
     Public Class Terminal
         Public Shared Function terminal(ServersAvailable As HNServer(), ByRef CurrentComputer As HNServer) As String
@@ -97,7 +96,7 @@ Namespace Terminals
                     Return cmd
 
                 ElseIf cmd = "dc" OrElse cmd = "disconnect" Then
-                    CurrentComputer.Contents.GetIndexDFiB("log").Files.Add(New Entropy.System.File("116.121.4.6 Disconnected"))
+                    If CurrentComputer IsNot Server.root Then CurrentComputer.Contents.GetIndexDFiB("log").Files.Add(New Entropy.System.File("116.121.4.6 Disconnected"))
                     Console.WriteLine("Disconnected.")
                     CurrentComputer = Server.root
                     Return cmd
@@ -369,6 +368,10 @@ Namespace Terminals
                     End Try
                     Return cmd
                 ElseIf String.Equals(cmd, "Forkbomb", StringComparison.OrdinalIgnoreCase) Then
+                    If Not CurrentComputer.GetFileExists("bin", "forkbomb.exe") Then
+                        Console.WriteLine("Unknown Command.")
+                        Return cmd
+                    End If
                     Dim fb As New ForkBomb()
                     Entropy.System.Process.StartProcess(fb, Game.GetMaxRam(), Game.GetUsedRam())
                 Else

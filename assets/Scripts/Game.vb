@@ -10,6 +10,7 @@ Imports BCEngine.Security
 Imports System.Collections.Generic
 Imports Terminals
 Public Module Game
+    Public MyComputer As HNServer
     ' 將 Directory/player 提升到模組層級
     Public BaseDir As String
     Private player As SoundPlayer
@@ -43,19 +44,19 @@ Public Module Game
         Try
             ' 創建新的 RichPresence 結構體 (來自 Engine 命名空間)
             Dim presence As New BCEngine.RichPresence()
-            
+
             ' FIX: 截斷字串以確保長度不超過 RichPresence 結構體中的固定大小
             ' details 和 state 限制為 128，所以截取到 127
             presence.details = If(details.Length > 127, details.Substring(0, 127), details)
             presence.state = If(state.Length > 127, state.Substring(0, 127), state)
-            
+
             ' largeImageText/Key 限制為 256
-            presence.largeImageKey = "hacknet_logo" 
+            presence.largeImageKey = "hacknet_logo"
             presence.largeImageText = If(largeText.Length > 255, largeText.Substring(0, 255), largeText)
-            
+
             ' 呼叫 P/Invoke 更新狀態
             BCEngine.DiscordRPC.UpdatePresence(presence)
-            
+
         Catch ex As Exception
             ' 忽略 Discord RPC 失敗，防止程式崩潰
             Debug.WriteLine("Discord RPC Failed: " & ex.Message)
@@ -68,60 +69,60 @@ Public Module Game
     Public Sub BSoD()
         player.Stop()
         Console.Clear()
-        Thread.Sleep(2000)
         ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Blue, True)
+        Thread.Sleep(2000)
         Console.WriteLine("A problem has been detected and HacknetOS has been shut down to prevent damage to your computer.")
-
-        Console.WriteLine("PAGE_FAULT_IN_NONPAGED_AREA")
-
+        Console.WriteLine()
+        Console.WriteLine("BROKEN_BY_FORKBOMB")
+        Console.WriteLine()
         Console.WriteLine("If this is the first time you've seen this stop error screen, restart your computer. If this screen appears again, follow these steps:")
-
+        Console.WriteLine()
         Console.WriteLine("Check to make sure any new hardware or software is properly installed. If this is a new installation, ask your hardware or software manufacturer for any Windows updates you might need.")
         Console.WriteLine("If problems continue, disable or remove any newly installed hardware or software. Disable BIOS memory options such as caching or shadowing. If you need to use Safe Mode to remove or disable components, restart your computer, press F8 to select Advanced Startup Options, and then select Safe Mode.")
-
+        Console.WriteLine()
         Console.WriteLine("Technical information:")
-
-        Console.WriteLine("*** STOP: 0x00000050 (0xFD3094C2, 0x00000001, 0xFBFE7617, 0x00000000)")
-
+        Console.WriteLine()
+        Console.WriteLine("*** STOP: 0x0000721 (0xFD3094C2, 0x00000013, 0xFBFE7617, 0x00000000)")
+        Console.WriteLine()
         Console.WriteLine("*** atikmdag.sys - Address FBFE7617 base at FBFE5000, DateStamp 3d6de5a5")
         Thread.Sleep(5000)
         StartGame()
     End Sub
     Public Sub GameMain(Dir As String)
-        Dim DiscordAppID As String = "1428378052223697007" 
-        
+        Dim DiscordAppID As String = "1428378052223697007"
+
         ' 儲存 BaseDir 到模組變數
         BaseDir = Dir
-        
+
         ' *** Discord RPC 初始化 (使用 P/Invoke Wrapper) ***
         Try
             ' VB.NET 2012 嚴格要求所有參數都用括號包住
             BCEngine.DiscordRPC.Initialize(DiscordAppID, IntPtr.Zero, True, Nothing)
-            
+
             ' 設定初始狀態 (主選單)
             SetDiscordStatus("In Main Menu")
         Catch ex As Exception
             Debug.WriteLine("Discord RPC Initialization Failed: " & ex.Message)
         End Try
-        
+
         Console.Title = "Hacknet for cmd: Basic"
         Dim targetFont As String = "MS Gothic"
         Dim targetSize As Integer = 20
         ConsoleFont.SetFont(targetFont, targetSize)
-        
+
         ' 宣告迴圈變數 (GameMain)
         Dim selected As Integer = 0
-        Dim menus() As String 
+        Dim menus() As String
         ' 修正陣列初始化語法
         menus = New String() {"Play", "Options", "Exit"}
-        
+
         Dim pressedKey As ConsoleKeyInfo
         Dim selectedValue As String = "Null"
-        
+
         ' 音效初始化
         player = AudioUtil.GetSoundPlayer(BaseDir, "assets\audios\bgm.wav")
         player.PlayLooping()
-        
+
         While True
             ' *** 定期呼叫 Discord_RunCallbacks (P/Invoke) ***
             Try
@@ -130,12 +131,12 @@ Public Module Game
             Catch
                 ' 忽略 RunCallbacks 失敗
             End Try
-            
-            Console.Clear() 
+
+            Console.Clear()
             Logo("Basic")
             selectedValue = Menu(selected, menus)
             pressedKey = Console.ReadKey(True)
-            
+
             If pressedKey.Key = ConsoleKey.UpArrow Then
                 If selected > 0 Then
                     selected -= 1
@@ -143,7 +144,7 @@ Public Module Game
                     selected = menus.Length - 1
                 End If
             ElseIf pressedKey.Key = ConsoleKey.DownArrow Then
-                If selected < menus.Length - 1 Then 
+                If selected < menus.Length - 1 Then
                     selected += 1
                 Else
                     selected = 0
@@ -152,19 +153,19 @@ Public Module Game
                 If selectedValue = "Exit" Then
                     ' *** 關閉 Discord RPC (P/Invoke) ***
                     Try
-                        BCEngine.DiscordRPC.Shutdown() 
+                        BCEngine.DiscordRPC.Shutdown()
                     Catch
                         ' 忽略 Shutdown 失敗
                     End Try
                     ' Environment.Exit 必須用括號
                     Environment.Exit(0)
-                ElseIf selectedValue = "Play" Then 
+                ElseIf selectedValue = "Play" Then
                     LoginSettings()
-                ElseIf selectedValue = "Options" Then 
-                    AudioUtil.GetSoundPlayer(BaseDir,"assets\audios\erro.wav").PlaySync()
+                ElseIf selectedValue = "Options" Then
+                    AudioUtil.GetSoundPlayer(BaseDir, "assets\audios\erro.wav").PlaySync()
                     player.PlayLooping()
                 Else
-                    AudioUtil.GetSoundPlayer(BaseDir,"assets\audios\erro.wav").PlaySync()
+                    AudioUtil.GetSoundPlayer(BaseDir, "assets\audios\erro.wav").PlaySync()
                     player.PlayLooping()
                 End If
             End If
@@ -173,13 +174,13 @@ Public Module Game
 
     Public Sub LoginSettings()
         ' 宣告迴圈變數 (LoginSettings)
-        Dim selected As Integer = 0 
-        Dim pressedKey As ConsoleKeyInfo 
-        Dim selectedValue As String = "Null" 
-        
-        Dim menus() As String 
+        Dim selected As Integer = 0
+        Dim pressedKey As ConsoleKeyInfo
+        Dim selectedValue As String = "Null"
+
+        Dim menus() As String
         menus = New String() {"Login", "Register", "Back"}
-        
+
         While True
             ' *** 定期呼叫 Discord_RunCallbacks (P/Invoke) ***
             Try
@@ -188,19 +189,19 @@ Public Module Game
                 ' 忽略 RunCallbacks 失敗
             End Try
 
-            Console.Clear() 
+            Console.Clear()
             Logo("Play")
             selectedValue = Menu(selected, menus)
             pressedKey = Console.ReadKey(True)
-            
+
             If pressedKey.Key = ConsoleKey.UpArrow Then
                 If selected > 0 Then
                     selected -= 1
                 Else
-                    selected = menus.Length - 1 
+                    selected = menus.Length - 1
                 End If
             ElseIf pressedKey.Key = ConsoleKey.DownArrow Then
-                If selected < menus.Length - 1 Then 
+                If selected < menus.Length - 1 Then
                     selected += 1
                 Else
                     selected = 0
@@ -208,13 +209,13 @@ Public Module Game
             ElseIf pressedKey.Key = ConsoleKey.Enter Then
                 If selectedValue = "Back" Then
                     Return
-                ElseIf selectedValue = "Login" Then 
+                ElseIf selectedValue = "Login" Then
                     Login()
-                ElseIf selectedValue = "Register" Then 
+                ElseIf selectedValue = "Register" Then
                     Register()
                 Else
                     ' 使用 BaseDir 和模組級 player
-                    AudioUtil.GetSoundPlayer(BaseDir,"assets\audios\erro.wav").PlaySync()
+                    AudioUtil.GetSoundPlayer(BaseDir, "assets\audios\erro.wav").PlaySync()
                     player.PlayLooping()
                 End If
             End If
@@ -247,7 +248,7 @@ Public Module Game
             Else
                 Console.WriteLine("Login failed!")
             End If
-        Else 
+        Else
             Console.WriteLine("User does not exist!")
         End If
         Console.ReadKey()
@@ -258,17 +259,18 @@ Public Module Game
         Dim username As String
         Dim password As String
         Console.WriteLine("Enter your username:")
+
         username = Console.ReadLine()
         Console.WriteLine("Enter your password:")
         password = Console.ReadLine()
         Try
             If HNFiles.DirExists(BaseDir & "\Data\Player\Accounts\" & username) Then
-               Console.WriteLine("User already exists!")
+                Console.WriteLine("User already exists!")
             Else
-               CreateDirectory(BaseDir & "\Data\Player\Accounts\" & username)
-               HNFiles.WriteFile(BaseDir & "\Data\Player\Accounts\" & username & "\info.linf", "<username>" & username & "<password>" & Security.ToSHA256(password))
-               HNFiles.WriteFile(BaseDir & "\Data\Player\Accounts\" & username & "\session.ses", "1")
-               Console.WriteLine("Registration successful!")
+                CreateDirectory(BaseDir & "\Data\Player\Accounts\" & username)
+                HNFiles.WriteFile(BaseDir & "\Data\Player\Accounts\" & username & "\info.linf", "<username>" & username & "<password>" & Security.ToSHA256(password))
+                HNFiles.WriteFile(BaseDir & "\Data\Player\Accounts\" & username & "\session.ses", "1")
+                Console.WriteLine("Registration successful!")
             End If
         Catch ex As Exception
             ' 處理可能發生的錯誤，例如檔案不存在、權限不足等
@@ -278,29 +280,32 @@ Public Module Game
     End Sub
 
     Public Sub Logo(SubTitle As String)
+        Console.WriteLine()
         Console.WriteLine("██╗  ██╗  █████╗   █████╗  ██╗  ██╗ ███╗  ██╗ ███████╗ ████████╗")
         Console.WriteLine("██║  ██║ ██╔══██╗ ██╔══██╗ ██║ ██╔╝ ████╗ ██║ ██╔════╝ ╚══██╔══╝")
         Console.WriteLine("███████║ ███████║ ██║  ╚═╝ █████═╝  ██╔██╗██║ █████╗      ██║")
         Console.WriteLine("██╔══██║ ██╔══██║ ██║  ██╗ ██╔═██╗  ██║╚████║ ██╔══╝      ██║")
         Console.WriteLine("██║  ██║ ██║  ██║ ╚█████╔╝ ██║ ╚██╗ ██║ ╚███║ ███████╗    ██║")
-        Console.WriteLine("╚═╝  ╚═╝ ╚═╝  ╚═╝  ╚════╝  ╚═╝  ╚═╝ ╚═╝  ╚══╝ ╚══════╝    ╚═╝")
-        Console.WriteLine("                      " & SubTitle & "                               ")
+        Console.WriteLine("╚═╝  ╚═╝ ╚═╝  ╚═╝  ╚════╝  ╚═╝  ╚═╝ ╚═╝  ╚══╝ ╚══════╝    ╚═╝         for CMD // Basic Edition  |  Beta 0126")
+        Console.WriteLine(SubTitle)
     End Sub
     Sub StartGame()
+        Console.Clear()
+        Processes = New List(Of Entropy.System.Process)
         UsedRAM = 0
-        Entropy.System.Process.StartProcess(New BGProc(), Game.GetMaxRam(), Game.GetUsedRam())
+        Entropy.System.Process.StartProcess(New BGProc(), Game.GetMaxRam(), Game.GetUsedRam(), False)
         ConsoleFont.SetColor(ConsoleColor.White, ConsoleColor.Black, True)
         Dim sr As New StreamReader("Boot.txt")
         player.Stop()
         Dim line As String = ""
-        Console.Clear()
+        AudioUtil.GetSoundPlayer(BaseDir, "assets\audios\boot.wav").Play()
         Do
             Try
                 line = sr.ReadLine()
             Catch ex As Exception
                 Console.WriteLine("Error reading file: " & ex.Message)
             End Try
-            
+
             If line IsNot Nothing Then
                 Console.WriteLine(line)
                 If line = "\n" Then
@@ -363,10 +368,10 @@ Public Module Game
         Dim selectedValue As String = "None"
         For Each menuN As String In menus
             If index = selected Then
-                Console.WriteLine("    ["+menuN+"]")
+                Console.WriteLine("    [" + menuN + "]")
                 selectedValue = menuN
             Else
-                Console.WriteLine(" "+menuN)
+                Console.WriteLine(" " + menuN)
             End If
             Console.WriteLine("")
             index += 1

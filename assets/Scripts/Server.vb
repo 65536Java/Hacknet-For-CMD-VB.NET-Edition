@@ -72,6 +72,9 @@ Public Module Server
                 Return False
             End If
         End Function
+        Public Function GetFileExists(DirN As String, Fname As String) As Boolean
+            Return Contents.FileExist(DirN, Fname)
+        End Function
     End Class
     Public Class ServerInfoParse
         ' 以手寫解析（不使用 JsonLib），改用 brace-depth 抽取頂層 object
@@ -242,10 +245,10 @@ Public Module Server
                 ' 若 ContentsRaw 看起來像物件且包含 files 陣列，嘗試簡單解析並加入 FileSys
                 If Not String.IsNullOrWhiteSpace(s.ContentsRaw) AndAlso s.ContentsRaw.Contains("""files""") Then
                     Dim filesSection As Match = Regex.Match(s.ContentsRaw, """files""\s*:\s*\[([^\]]*)\]", RegexOptions.Singleline)
-            
+
                     If filesSection.Success Then
                         Dim filesInner As String = filesSection.Groups(1).Value
-                    
+
                         For Each fm As Match In Regex.Matches(filesInner, "\{(.*?)\}", RegexOptions.Singleline)
                             Dim fileBody As String = fm.Groups(1).Value
                             Dim mFileName As Match = Regex.Match(fileBody, """name""\s*:\s*""([^""]*)""", RegexOptions.Singleline)

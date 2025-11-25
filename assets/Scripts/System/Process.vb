@@ -27,6 +27,20 @@ Namespace Entropy.System
             End If
             Game.Processes.Add(Me)
         End Sub
+        Public Sub Start2()
+            isActived = True
+            procThread = New Thread(AddressOf Me.ProcessMain)
+            procThread.IsBackground = True
+            procThread.Start()
+            If Game.Processes Is Nothing Then
+                Game.Processes = New List(Of Entropy.System.Process)()
+            End If
+            Game.Processes.Add(Me)
+            While isActived
+                Thread.Sleep(50)
+            End While
+            procThread.Interrupt()
+        End Sub
 
         ' 阻塞：在呼叫執行緒上直接執行 ProcessMain（會阻塞呼叫者）
         Public Sub StartBlocking()
@@ -87,7 +101,7 @@ Namespace Entropy.System
             StartProcess(p, maxRam, usedRam, False)
         End Sub
 
-        Public Shared Sub StartProcess(p As Process, maxRam As Integer, usedRam As Integer, Optional blocking As Boolean = False)
+        Public Shared Sub StartProcess(p As Process, maxRam As Integer, usedRam As Integer, Optional blocking As Boolean = False, Optional WaitForEnd As Boolean = False)
             If p Is Nothing Then Return
             Game.usedRam += p.needRam
             Console.Title = "HacknetCMD: Basic - RAM:" & Game.GetUsedRam() & "/" & Game.GetMaxRam()
@@ -104,7 +118,12 @@ Namespace Entropy.System
             If blocking Then
                 p.StartBlocking()
             Else
-                p.Start()
+                If WaitForEnd Then
+                    p.Start2()
+                Else
+                    p.Start()
+
+                End If
             End If
             Console.Title = "HacknetCMD: Basic - RAM:" & usedRam & "/" & maxRam
         End Sub
